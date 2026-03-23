@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <!-- 1. METADATA -->
+  <id>leave_request_process</id>
+  <version>1.0.0</version>
+  <initials>LR</initials>
+  <title>Leave Request Approval</title>
+  <icon>event_note</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- 2. ROLES -->
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>hr</id>
+    <title>HR Generalist</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- 3. DATA FIELDS -->
+  <!-- Form Data (Embedded via taskRef) -->
+  <data type="text">
+    <id>employee_name</id>
+    <title>Employee Name</title>
+  </data>
+  <data type="enumeration_map">
+    <id>leave_type</id>
+    <title>Leave Type</title>
+    <options>
+      <option key="vacation">Vacation</option>
+      <option key="sick">Sick Leave</option>
+      <option key="personal">Personal Leave</option>
+    </options>
+    <init>vacation</init>
+  </data>
+  <data type="date">
+    <id>start_date</id>
+    <title>Start Date</title>
+  </data>
+  <data type="date">
+    <id>end_date</id>
+    <title>End Date</title>
+  </data>
+  <data type="text">
+    <id>reason</id>
+    <title>Reason for Leave</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <!-- Control & Status Fields -->
+  <data type="text">
+    <id>status</id>
+    <title>Current Status</title>
+    <value>New</value>
+  </data>
+  <data type="enumeration_map">
+    <id>manager_decision</id>
+    <title>Manager Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+      <option key="revise">Request Revision</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>manager_note</id>
+    <title>Manager Notes</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <!-- Routing Numbers (Variable Arcs) -->
+  <data type="number">
+    <id>to_hr</id>
+    <title>Route to HR</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_reject</id>
+    <title>Route to Reject</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_revise</id>
+    <title>Route to Revision</title>
+    <init>0</init>
+  </data>
+  <!-- Task References -->
+  <data type="taskRef">
+    <id>form_ref</id>
+    <title>Request Details</title>
+    <init>t_form_task</init>
+  </data>
+  <!-- Dividers -->
+  <data type="i18n">
+    <id>div_decision</id>
+    <title>Decision Section</title>
+    <init>Decision Section</init>
+  </data>
+  <!-- 4. TRANSITIONS -->
+  <!-- System Form Task (Always Enabled) -->
+  <transition>
+    <id>t_form_task</id>
+    <x>112</x>
+    <y>16</y>
+    <label>Leave Form Data</label>
+    <priority>5</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_form</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <dataRef>
+        <id>employee_name</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- 1. Submit Request -->
+  <transition>
+    <id>t_submit</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Submit Leave Request</label>
+    <icon>send</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <dataRef>
+        <id>form_ref</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_submit_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            status: f.status;
+            change status value { "Pending Manager Approval" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- 2. Manager Approval -->
+  <transition>
+    <id>t_manager</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>assignment_ind</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_manager</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <dataRef>
+        <id>form_ref</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>div_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+        <component>
+          <n>divider</n>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>manager_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_note</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_manager_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            decision: f.manager_decision,
+            to_hr: f.to_hr,
+            to_reject: f.to_reject,
+            to_revise: f.to_revise,
+            status: f.status;
+            
+            if (decision.value == "approve") {
+            change to_hr value { 1 }
+            change to_reject value { 0 }
+            change to_revise value { 0 }
+            change status value { "Pending HR Processing" }
+            } else if (decision.value == "revise") {
+            change to_hr value { 0 }
+            change to_reject value { 0 }
+            change to_revise value { 1 }
+            change status value { "Revision Requested" }
+            } else {
+            change to_hr value { 0 }
+            change to_reject value { 1 }
+            change to_revise value { 0 }
+            change status value { "Rejected by Manager" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- 3. HR Processing -->
+  <transition>
+    <id>t_hr</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>HR Processing</label>
+    <icon>account_balance</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>hr</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_hr</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <dataRef>
+        <id>form_ref</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_note</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_hr_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            status: f.status;
+            change status value { "Approved and Processed" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Status View (Always On) -->
+  <transition>
+    <id>t_status</id>
+    <x>496</x>
+    <y>16</y>
+    <label>Request Status</label>
+    <icon>visibility</icon>
+    <priority>2</priority>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>form_ref</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_note</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- 5. PLACES -->
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_manager</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Pending Manager</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_hr</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Pending HR</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_end</id>
+    <x>1264</x>
+    <y>208</y>
+    <label>Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>880</x>
+    <y>400</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>496</x>
+    <y>112</y>
+    <label>Status Active</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_form</id>
+    <x>112</x>
+    <y>112</y>
+    <label>Form Active</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <!-- 6. ARCS -->
+  <!-- Form Task Setup -->
+  <arc>
+    <id>a1</id>
+    <type>read</type>
+    <sourceId>p_form</sourceId>
+    <destinationId>t_form_task</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Main Flow -->
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>t_submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_manager</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>p_manager</sourceId>
+    <destinationId>t_manager</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Manager Routing (Variable Arcs) -->
+  <arc>
+    <id>a_mgr_to_hr</id>
+    <type>regular</type>
+    <sourceId>t_manager</sourceId>
+    <destinationId>p_hr</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_hr</reference>
+  </arc>
+  <arc>
+    <id>a_mgr_to_rej</id>
+    <type>regular</type>
+    <sourceId>t_manager</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_reject</reference>
+  </arc>
+  <arc>
+    <id>a_mgr_to_rev</id>
+    <type>regular</type>
+    <sourceId>t_manager</sourceId>
+    <destinationId>p_start</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_revise</reference>
+  </arc>
+  <!-- HR to End -->
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_hr</sourceId>
+    <destinationId>t_hr</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>t_hr</sourceId>
+    <destinationId>p_end</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Status View Setup -->
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>t_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- 7. CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="4">
+<![CDATA[
+            // Bootstrap the form task so taskRef works immediately
+            async.run {
+            assignTask("t_form_task")
+            finishTask("t_form_task")
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
