@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>po_parallel_poc</id>
+  <version>1.0.0</version>
+  <initials>PO</initials>
+  <title>Purchase Order (Parallel Review)</title>
+  <icon>shopping_cart</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <role>
+    <id>requester</id>
+    <title>Requester</title>
+  </role>
+  <role>
+    <id>legal</id>
+    <title>Legal Department</title>
+  </role>
+  <role>
+    <id>finance</id>
+    <title>Finance Department</title>
+  </role>
+  <!-- DATA -->
+  <data type="text">
+    <id>po_subject</id>
+    <title>PO Subject</title>
+  </data>
+  <data type="number">
+    <id>amount</id>
+    <title>Total Amount</title>
+    <init>0</init>
+  </data>
+  <data type="text">
+    <id>legal_note</id>
+    <title>Legal Review Note</title>
+  </data>
+  <data type="text">
+    <id>finance_note</id>
+    <title>Finance Review Note</title>
+  </data>
+  <!-- TRANSITIONS -->
+  <transition>
+    <id>submit_po</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Purchase Order</label>
+    <icon>send</icon>
+    <roleRef>
+      <id>requester</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>PO Details</title>
+      <dataRef>
+        <id>po_subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_sub_fin</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run {
+            def t = findTask { q -> q.transitionId.eq("split_parallel").and(q.caseId.eq(useCase.stringId)) }
+            if (t) { assignTask(t); finishTask(t) }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>split_parallel</id>
+    <x>304</x>
+    <y>208</y>
+    <label>System Split</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+  </transition>
+  <transition>
+    <id>review_legal</id>
+    <x>496</x>
+    <y>112</y>
+    <label>Legal Review</label>
+    <icon>gavel</icon>
+    <roleRef>
+      <id>legal</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_legal</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Legal Assessment</title>
+      <dataRef>
+        <id>legal_note</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>review_finance</id>
+    <x>496</x>
+    <y>304</y>
+    <label>Finance Review</label>
+    <icon>payments</icon>
+    <roleRef>
+      <id>finance</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_finance</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Finance Assessment</title>
+      <dataRef>
+        <id>finance_note</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>archive_po</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Archive Approved PO</label>
+    <icon>archive</icon>
+    <roleRef>
+      <id>requester</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_summary</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Summary</title>
+      <dataRef>
+        <id>legal_note</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>finance_note</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>p_start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_pending_split</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Pending Split</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_legal_queue</id>
+    <x>400</x>
+    <y>112</y>
+    <label>Legal Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_finance_queue</id>
+    <x>400</x>
+    <y>304</y>
+    <label>Finance Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_legal_done</id>
+    <x>592</x>
+    <y>112</y>
+    <label>Legal Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_finance_done</id>
+    <x>592</x>
+    <y>304</y>
+    <label>Finance Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_join</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Both Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_end</id>
+    <x>976</x>
+    <y>208</y>
+    <label>End</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>submit_po</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_po</sourceId>
+    <destinationId>p_pending_split</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_pending_split</sourceId>
+    <destinationId>split_parallel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>split_parallel</sourceId>
+    <destinationId>p_legal_queue</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>split_parallel</sourceId>
+    <destinationId>p_finance_queue</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>p_legal_queue</sourceId>
+    <destinationId>review_legal</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>p_finance_queue</sourceId>
+    <destinationId>review_finance</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>review_legal</sourceId>
+    <destinationId>p_legal_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>review_finance</sourceId>
+    <destinationId>p_finance_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>p_legal_done</sourceId>
+    <destinationId>archive_po</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a11</id>
+    <type>regular</type>
+    <sourceId>p_finance_done</sourceId>
+    <destinationId>archive_po</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>archive_po</sourceId>
+    <destinationId>p_end</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
