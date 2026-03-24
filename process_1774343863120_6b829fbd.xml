@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+    <id>bug_lifecycle_poc</id>
+    <version>1.0.0</version>
+    <initials>BLC</initials>
+    <title>Bug Report Lifecycle</title>
+    <icon>bug_report</icon>
+    <defaultRole>true</defaultRole>
+    <anonymousRole>false</anonymousRole>
+    <transitionRole>false</transitionRole>
+
+    <!-- ROLES -->
+    <role><id>reporter</id><title>Reporter</title></role>
+    <role><id>triage_manager</id><title>Triage Manager</title></role>
+    <role><id>developer</id><title>Developer</title></role>
+    <role><id>tester</id><title>Tester</title></role>
+    <role><id>system</id><title>System</title></role>
+
+    <!-- DATA FIELDS -->
+    <data type="text">
+        <id>title</id>
+        <title>Bug Title</title>
+    </data>
+    <data type="text">
+        <id>description</id>
+        <title>Description</title>
+        <component><n>textarea</n></component>
+    </data>
+    <data type="enumeration">
+        <id>severity</id>
+        <title>Severity</title>
+        <options>
+            <option><key>low</key><value>Low</value></option>
+            <option><key>medium</key><value>Medium</value></option>
+            <option><key>high</key><value>High</value></option>
+            <option><key>critical</key><value>Critical</value></option>
+        </options>
+    </data>
+    <data type="user">
+        <id>assigned_dev</id>
+        <title>Assigned Developer</title>
+    </data>
+    <data type="text">
+        <id>fix_version</id>
+        <title>Fix Version</title>
+    </data>
+    <data type="text">
+        <id>rejection_reason</id>
+        <title>Rejection Reason</title>
+    </data>
+    
+    <!-- ROUTING FIELDS -->
+    <data type="number"><id>to_fix</id><title>To Fix</title><init>0</init></data>
+    <data type="number"><id>to_rejected</id><title>To Rejected</title><init>0</init></data>
+
+    <!-- TRANSITIONS -->
+    <transition>
+        <id>submit</id>
+        <x>112</x><y>208</y>
+        <label>Report Bug</label>
+        <icon>add</icon>
+        <roleRef><id>reporter</id><logic><perform>true</perform></logic></roleRef>
+        <dataGroup>
+            <id>dg_submit</id><cols>2</cols><layout>grid</layout><title>Bug Details</title>
+            <dataRef>
+                <id>title</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>description</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>1</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>severity</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>2</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+        </dataGroup>
+    </transition>
+
+    <transition>
+        <id>triage</id>
+        <x>496</x><y>208</y>
+        <label>Triage Bug</label>
+        <icon>assignment_ind</icon>
+        <roleRef><id>triage_manager</id><logic><perform>true</perform></logic></roleRef>
+        <dataGroup>
+            <id>dg_triage</id><cols>2</cols><layout>grid</title>Triage Decision</title>
+            <dataRef>
+                <id>title</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>assigned_dev</id>
+                <logic><behavior>editable</behavior></logic>
+                <layout><x>0</x><y>1</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>rejection_reason</id>
+                <logic><behavior>editable</behavior></logic>
+                <layout><x>1</x><y>1</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+        </dataGroup>
+        <event type="finish">
+            <id>ev_triage_fin</id>
+            <actions phase="pre">
+                <action id="1"><![CDATA[
+                    to_fix: f.to_fix, to_rejected: f.to_rejected, dev: f.assigned_dev;
+                    if (dev.value != null) {
+                        change to_fix value { 1 }
+                        change to_rejected value { 0 }
+                    } else {
+                        change to_fix value { 0 }
+                        change to_rejected value { 1 }
+                    }
+                ]]></action>
+            </actions>
+        </event>
+    </transition>
+
+    <transition>
+        <id>fix</id>
+        <x>880</x><y>208</y>
+        <label>Fix Bug</label>
+        <icon>build</icon>
+        <roleRef><id>developer</id><logic><perform>true</perform></logic></roleRef>
+        <dataGroup>
+            <id>dg_fix</id><cols>2</cols><layout>grid</title>Fix Details</title>
+            <dataRef>
+                <id>description</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>fix_version</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>1</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+        </dataGroup>
+    </transition>
+
+    <transition>
+        <id>verify</id>
+        <x>1264</x><y>208</y>
+        <label>Verify Fix</label>
+        <icon>fact_check</icon>
+        <roleRef><id>tester</id><logic><perform>true</perform></logic></roleRef>
+        <dataGroup>
+            <id>dg_verify</id><cols>1</cols><layout>grid</title>Verification</title>
+            <dataRef>
+                <id>fix_version</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+        </dataGroup>
+    </transition>
+
+    <transition>
+        <id>fail_verification</id>
+        <x>1072</x><y>400</y>
+        <label>Fail &amp; Reopen</label>
+        <icon>replay</icon>
+        <roleRef><id>tester</id><logic><perform>true</perform></logic></roleRef>
+    </transition>
+
+    <!-- PLACES -->
+    <place><id>start</id><x>16</x><y>208</y><label>Start</label><tokens>1</tokens></place>
+    <place><id>p_triage</id><x>304</x><y>208</y><label>Pending Triage</label><tokens>0</tokens></place>
+    <place><id>p_fix</id><x>688</x><y>208</y><label>In Development</label><tokens>0</tokens></place>
+    <place><id>p_verify</id><x>1072</x><y>208</y><label>Pending Verification</label><tokens>0</tokens></place>
+    <place><id>p_rejected</id><x>688</x><y>400</y><label>Rejected</label><tokens>0</tokens></place>
+    <place><id>p_closed</id><x>1456</x><y>208</y><label>Closed</label><tokens>0</tokens></place>
+
+    <!-- ARCS -->
+    <arc><id>a1</id><type>regular</type><sourceId>start</sourceId><destinationId>submit</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a2</id><type>regular</type><sourceId>submit</sourceId><destinationId>p_triage</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a3</id><type>regular</type><sourceId>p_triage</sourceId><destinationId>triage</destinationId><multiplicity>1</multiplicity></arc>
+    
+    <!-- XOR Split from Triage -->
+    <arc><id>a4</id><type>regular</type><sourceId>triage</sourceId><destinationId>p_fix</destinationId><multiplicity>0</multiplicity><reference>to_fix</reference></arc>
+    <arc><id>a5</id><type>regular</type><sourceId>triage</sourceId><destinationId>p_rejected</destinationId><multiplicity>0</multiplicity><reference>to_rejected</reference></arc>
+    
+    <arc><id>a6</id><type>regular</type><sourceId>p_fix</sourceId><destinationId>fix</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a7</id><type>regular</type><sourceId>fix</sourceId><destinationId>p_verify</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a8</id><type>regular</type><sourceId>p_verify</sourceId><destinationId>verify</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a9</id><type>regular</type><sourceId>verify</sourceId><destinationId>p_closed</destinationId><multiplicity>1</multiplicity></arc>
+    
+    <!-- Reopen Loop -->
+    <arc><id>a10</id><type>regular</type><sourceId>p_verify</sourceId><destinationId>fail_verification</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a11</id><type>regular</type><sourceId>fail_verification</sourceId><destinationId>p_fix</destinationId><multiplicity>1</multiplicity></arc>
+
+    <caseEvents>
+        <event type="create">
+            <id>on_create</id>
+            <actions phase="post">
+                <action id="1"><![CDATA[
+                    changeCaseProperty("title").about { "Bug: " + f.title.value }
+                ]]></action>
+            </actions>
+        </event>
+    </caseEvents>
+</document>
