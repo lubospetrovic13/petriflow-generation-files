@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>employee_onboarding</id>
+  <version>1.0.0</version>
+  <initials>EO</initials>
+  <title>Employee Onboarding Checklist</title>
+  <icon>assignment_turned_in</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>hr</id>
+    <title>HR</title>
+  </role>
+  <role>
+    <id>it</id>
+    <title>IT</title>
+  </role>
+  <role>
+    <id>facilities</id>
+    <title>Facilities</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- DATA FIELDS -->
+  <data type="text">
+    <id>employee_name</id>
+    <title>Employee Name</title>
+    <value/>
+  </data>
+  <data type="date">
+    <id>start_date</id>
+    <title>Start Date</title>
+  </data>
+  <data type="multichoice_map">
+    <id>departments</id>
+    <title>Departments Involved</title>
+    <options>
+      <option key="hr">HR</option>
+      <option key="it">IT</option>
+      <option key="facilities">Facilities</option>
+    </options>
+    <inits>
+      <init>hr</init>
+      <init>it</init>
+      <init>facilities</init>
+    </inits>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+    <value>New</value>
+  </data>
+  <data type="text">
+    <id>it_equipment</id>
+    <title>IT Equipment Checklist</title>
+    <value/>
+  </data>
+  <data type="text">
+    <id>facilities_access</id>
+    <title>Facilities Access Checklist</title>
+    <value/>
+  </data>
+  <data type="text">
+    <id>manager_notes</id>
+    <title>Manager Notes</title>
+    <value/>
+  </data>
+  <data type="boolean">
+    <id>onboarding_complete</id>
+    <title>Onboarding Complete</title>
+    <value>false</value>
+  </data>
+  <data type="text">
+    <id>hr_email</id>
+    <title>HR Email</title>
+    <value/>
+  </data>
+  <data type="text">
+    <id>manager_email</id>
+    <title>Manager Email</title>
+    <value/>
+  </data>
+  <data type="number">
+    <id>to_hr</id>
+    <title>To HR</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_it</id>
+    <title>To IT</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_facilities</id>
+    <title>To Facilities</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>branch_count</id>
+    <title>Branch Count</title>
+    <init>0</init>
+  </data>
+  <!-- TRANSITIONS -->
+  <!-- HR starts onboarding -->
+  <transition>
+    <id>start_onboarding</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start Onboarding</label>
+    <icon>person_add</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>hr</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>start_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Onboarding Details</title>
+      <dataRef>
+        <id>employee_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>departments</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_start_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            status: f.status;
+            change status value { "Onboarding Started" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- System: Split into selected departments -->
+  <transition>
+    <id>split_departments</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Assign Departments</label>
+    <icon>call_split</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_split_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            to_hr: f.to_hr, to_it: f.to_it, to_facilities: f.to_facilities, branch_count: f.branch_count, departments: f.departments;
+            def sel = departments.value as Set
+            change to_hr         value { sel.contains("hr") ? 1 : 0 }
+            change to_it         value { sel.contains("it") ? 1 : 0 }
+            change to_facilities value { sel.contains("facilities") ? 1 : 0 }
+            change branch_count  value { sel.size() as Double }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            status: f.status;
+            change status value { "Department Tasks Assigned" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- HR Checklist (optional, if selected) -->
+  <transition>
+    <id>hr_checklist</id>
+    <x>496</x>
+    <y>112</y>
+    <label>HR Checklist</label>
+    <icon>assignment_ind</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>hr</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>hr_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>HR Checklist</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_hr_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            status: f.status;
+            change status value { "HR Checklist Complete" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- IT Checklist (optional, if selected) -->
+  <transition>
+    <id>it_checklist</id>
+    <x>496</x>
+    <y>208</y>
+    <label>IT Checklist</label>
+    <icon>computer</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>it</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>it_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>IT Checklist</title>
+      <dataRef>
+        <id>it_equipment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_it_finish</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status;
+            change status value { "IT Checklist Complete" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Facilities Checklist (optional, if selected) -->
+  <transition>
+    <id>facilities_checklist</id>
+    <x>496</x>
+    <y>304</y>
+    <label>Facilities Checklist</label>
+    <icon>meeting_room</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>facilities</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>facilities_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Facilities Checklist</title>
+      <dataRef>
+        <id>facilities_access</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_fac_finish</id>
+      <actions phase="pre">
+        <action id="6">
+<![CDATA[
+            status: f.status;
+            change status value { "Facilities Checklist Complete" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- OR-join: Wait for all selected departments -->
+  <transition>
+    <id>or_join_departments</id>
+    <x>688</x>
+    <y>208</y>
+    <label>All Departments Done</label>
+    <icon>done_all</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+  </transition>
+  <!-- Manager Review -->
+  <transition>
+    <id>manager_review</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>supervisor_account</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>manager_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Manager Review</title>
+      <dataRef>
+        <id>manager_notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_manager_finish</id>
+      <actions phase="pre">
+        <action id="7">
+<![CDATA[
+            status: f.status;
+            change status value { "Manager Review Complete" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- System: Mark onboarding complete and notify -->
+  <transition>
+    <id>complete_onboarding</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Complete Onboarding</label>
+    <icon>check_circle</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_complete_finish</id>
+      <actions phase="pre">
+        <action id="8">
+<![CDATA[
+            onboarding_complete: f.onboarding_complete, status: f.status;
+            change onboarding_complete value { true }
+            change status value { "Onboarding Complete" }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="9">
+<![CDATA[
+            hr_email: f.hr_email, manager_email: f.manager_email, employee_name: f.employee_name;
+            sendEmail([hr_email.value, manager_email.value], "Onboarding Complete: ${employee_name.value}", "All onboarding tasks are complete.")
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_split</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Split Departments</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_hr</id>
+    <x>592</x>
+    <y>112</y>
+    <label>HR Branch</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_it</id>
+    <x>592</x>
+    <y>208</y>
+    <label>IT Branch</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_facilities</id>
+    <x>592</x>
+    <y>304</y>
+    <label>Facilities Branch</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_join</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Departments Joined</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_manager</id>
+    <x>976</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_complete</id>
+    <x>1168</x>
+    <y>208</y>
+    <label>Complete</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <arc>
+    <id>a_start_onb</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>start_onboarding</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_onb_split</id>
+    <type>regular</type>
+    <sourceId>start_onboarding</sourceId>
+    <destinationId>p_split</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_split_sys</id>
+    <type>regular</type>
+    <sourceId>p_split</sourceId>
+    <destinationId>split_departments</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_split_hr</id>
+    <type>regular</type>
+    <sourceId>split_departments</sourceId>
+    <destinationId>p_hr</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_hr</reference>
+  </arc>
+  <arc>
+    <id>a_split_it</id>
+    <type>regular</type>
+    <sourceId>split_departments</sourceId>
+    <destinationId>p_it</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_it</reference>
+  </arc>
+  <arc>
+    <id>a_split_fac</id>
+    <type>regular</type>
+    <sourceId>split_departments</sourceId>
+    <destinationId>p_facilities</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_facilities</reference>
+  </arc>
+  <arc>
+    <id>a_hr_task</id>
+    <type>regular</type>
+    <sourceId>p_hr</sourceId>
+    <destinationId>hr_checklist</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_it_task</id>
+    <type>regular</type>
+    <sourceId>p_it</sourceId>
+    <destinationId>it_checklist</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_fac_task</id>
+    <type>regular</type>
+    <sourceId>p_facilities</sourceId>
+    <destinationId>facilities_checklist</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_hr_join</id>
+    <type>regular</type>
+    <sourceId>hr_checklist</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_it_join</id>
+    <type>regular</type>
+    <sourceId>it_checklist</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_fac_join</id>
+    <type>regular</type>
+    <sourceId>facilities_checklist</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_join_or</id>
+    <type>regular</type>
+    <sourceId>p_join</sourceId>
+    <destinationId>or_join_departments</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>branch_count</reference>
+  </arc>
+  <arc>
+    <id>a_or_manager</id>
+    <type>regular</type>
+    <sourceId>or_join_departments</sourceId>
+    <destinationId>p_manager</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_manager_task</id>
+    <type>regular</type>
+    <sourceId>p_manager</sourceId>
+    <destinationId>manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_manager_complete</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_complete</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_complete_task</id>
+    <type>regular</type>
+    <sourceId>p_complete</sourceId>
+    <destinationId>complete_onboarding</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="10">
+<![CDATA[
+            async.run { assignTask("start_onboarding"); }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
