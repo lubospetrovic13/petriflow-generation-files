@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>auto_doc_pipeline</id>
+  <version>1.0.0</version>
+  <initials>ADP</initials>
+  <title>Automated Document Processing Pipeline</title>
+  <icon>description</icon>
+  <defaultRole>false</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- DATA FIELDS -->
+  <data type="file">
+    <id>document_file</id>
+    <title>Document File</title>
+    <component>
+      <n>preview</n>
+    </component>
+  </data>
+  <data type="text">
+    <id>ocr_text</id>
+    <title>OCR Text</title>
+  </data>
+  <data type="enumeration">
+    <id>classification</id>
+    <title>Classification</title>
+    <options>
+      <option>
+        <key>invoice</key>
+        <value>Invoice</value>
+      </option>
+      <option>
+        <key>contract</key>
+        <value>Contract</value>
+      </option>
+      <option>
+        <key>other</key>
+        <value>Other</value>
+      </option>
+    </options>
+  </data>
+  <data type="text">
+    <id>extracted_data</id>
+    <title>Extracted Data</title>
+  </data>
+  <data type="enumeration">
+    <id>validation_status</id>
+    <title>Validation Status</title>
+    <options>
+      <option>
+        <key>valid</key>
+        <value>Valid</value>
+      </option>
+      <option>
+        <key>invalid</key>
+        <value>Invalid</value>
+      </option>
+    </options>
+  </data>
+  <data type="text">
+    <id>error_message</id>
+    <title>Error Message</title>
+  </data>
+  <data type="text">
+    <id>archive_url</id>
+    <title>Archive URL</title>
+  </data>
+  <data type="text">
+    <id>notification_email</id>
+    <title>Notification Email</title>
+  </data>
+  <!-- TRANSITIONS -->
+  <transition>
+    <id>receive_document</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Receive Document</label>
+    <icon>cloud_upload</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>receive_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Receive Document</title>
+      <dataRef>
+        <id>document_file</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>notification_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_receive_finish</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run { assignTask("ocr"); finishTask("ocr") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>ocr</id>
+    <x>304</x>
+    <y>208</y>
+    <label>OCR</label>
+    <icon>text_snippet</icon>
+    <priority>2</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_ocr_finish</id>
+      <actions phase="post">
+        <action id="2">
+<![CDATA[
+            document_file: f.document_file;
+            try {
+            // Simulate OCR extraction
+            def ocrResult = "Simulated OCR text for file: ${document_file.value?.name ?: 'unknown'}"
+            def t = findTask { qTask -> qTask.transitionId.eq("classify").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [ocr_text: [value: ocrResult, type: "text"]])
+            async.run { assignTask("classify"); finishTask("classify") }
+            } catch (Exception e) {
+            def t = findTask { qTask -> qTask.transitionId.eq("handle_error").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [error_message: [value: "OCR failed: ${e.message}", type: "text"]])
+            async.run { assignTask("handle_error"); finishTask("handle_error") }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>classify</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Classify Document</label>
+    <icon>category</icon>
+    <priority>3</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_classify_finish</id>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            ocr_text: f.ocr_text;
+            try {
+            // Simulate classification
+            def text = ocr_text.value?.toLowerCase() ?: ""
+            def cls = text.contains("invoice") ? "invoice" : (text.contains("contract") ? "contract" : "other")
+            def t = findTask { qTask -> qTask.transitionId.eq("extract_data").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [classification: [value: cls, type: "enumeration"]])
+            async.run { assignTask("extract_data"); finishTask("extract_data") }
+            } catch (Exception e) {
+            def t = findTask { qTask -> qTask.transitionId.eq("handle_error").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [error_message: [value: "Classification failed: ${e.message}", type: "text"]])
+            async.run { assignTask("handle_error"); finishTask("handle_error") }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>extract_data</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Extract Data</label>
+    <icon>fact_check</icon>
+    <priority>4</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_extract_finish</id>
+      <actions phase="post">
+        <action id="4">
+<![CDATA[
+            classification: f.classification, ocr_text: f.ocr_text;
+            try {
+            // Simulate data extraction
+            def extracted = "Extracted fields for type: ${classification.value ?: 'unknown'}"
+            def t = findTask { qTask -> qTask.transitionId.eq("validate").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [extracted_data: [value: extracted, type: "text"]])
+            async.run { assignTask("validate"); finishTask("validate") }
+            } catch (Exception e) {
+            def t = findTask { qTask -> qTask.transitionId.eq("handle_error").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [error_message: [value: "Extraction failed: ${e.message}", type: "text"]])
+            async.run { assignTask("handle_error"); finishTask("handle_error") }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>validate</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Validate Data</label>
+    <icon>verified</icon>
+    <priority>5</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_validate_finish</id>
+      <actions phase="post">
+        <action id="5">
+<![CDATA[
+            extracted_data: f.extracted_data;
+            try {
+            // Simulate validation
+            def valid = extracted_data.value?.length() > 10
+            if (valid) {
+            def t = findTask { qTask -> qTask.transitionId.eq("archive").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [validation_status: [value: "valid", type: "enumeration"]])
+            async.run { assignTask("archive"); finishTask("archive") }
+            } else {
+            def t = findTask { qTask -> qTask.transitionId.eq("handle_error").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [validation_status: [value: "invalid", type: "enumeration"], error_message: [value: "Validation failed: insufficient data", type: "text"]])
+            async.run { assignTask("handle_error"); finishTask("handle_error") }
+            }
+            } catch (Exception e) {
+            def t = findTask { qTask -> qTask.transitionId.eq("handle_error").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [error_message: [value: "Validation failed: ${e.message}", type: "text"]])
+            async.run { assignTask("handle_error"); finishTask("handle_error") }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>archive</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Archive</label>
+    <icon>archive</icon>
+    <priority>6</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_archive_finish</id>
+      <actions phase="post">
+        <action id="6">
+<![CDATA[
+            document_file: f.document_file;
+            try {
+            // Simulate archiving
+            def url = "https://archive.example.com/${document_file.value?.name ?: 'unknown'}"
+            def t = findTask { qTask -> qTask.transitionId.eq("notify").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [archive_url: [value: url, type: "text"]])
+            async.run { assignTask("notify"); finishTask("notify") }
+            } catch (Exception e) {
+            def t = findTask { qTask -> qTask.transitionId.eq("handle_error").and(qTask.caseId.eq(useCase.stringId)) }
+            if (t) setData(t, [error_message: [value: "Archiving failed: ${e.message}", type: "text"]])
+            async.run { assignTask("handle_error"); finishTask("handle_error") }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>handle_error</id>
+    <x>688</x>
+    <y>400</y>
+    <label>Handle Error</label>
+    <icon>error</icon>
+    <priority>7</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_error_finish</id>
+      <actions phase="post">
+        <action id="7">
+<![CDATA[
+            async.run { assignTask("notify"); finishTask("notify") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>notify</id>
+    <x>1264</x>
+    <y>208</y>
+    <label>Notify</label>
+    <icon>email</icon>
+    <priority>8</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_notify_finish</id>
+      <actions phase="post">
+        <action id="8">
+<![CDATA[
+            notification_email: f.notification_email, validation_status: f.validation_status, archive_url: f.archive_url, error_message: f.error_message;
+            def subject = "Document Processing Result"
+            def body = ""
+            if (validation_status.value == "valid") {
+            body = "Your document was processed successfully.\nArchive URL: ${archive_url.value ?: '-'}"
+            } else {
+            body = "Document processing failed.\nError: ${error_message.value ?: 'Unknown error'}"
+            }
+            sendEmail([notification_email.value], subject, body)
+            async.run { assignTask("done"); finishTask("done") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>done</id>
+    <x>1456</x>
+    <y>208</y>
+    <label>Done</label>
+    <icon>check_circle</icon>
+    <priority>9</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p1</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Received</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p2</id>
+    <x>400</x>
+    <y>208</y>
+    <label>OCR Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p3</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Classified</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p4</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Data Extracted</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p5</id>
+    <x>976</x>
+    <y>208</y>
+    <label>Validated</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p6</id>
+    <x>1168</x>
+    <y>208</y>
+    <label>Archived</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_error</id>
+    <x>784</x>
+    <y>400</y>
+    <label>Error</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_notify</id>
+    <x>1360</x>
+    <y>208</y>
+    <label>Notified</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done</id>
+    <x>1552</x>
+    <y>208</y>
+    <label>Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <arc>
+    <id>a_start_receive</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>receive_document</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_receive_p1</id>
+    <type>regular</type>
+    <sourceId>receive_document</sourceId>
+    <destinationId>p1</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_p1_ocr</id>
+    <type>regular</type>
+    <sourceId>p1</sourceId>
+    <destinationId>ocr</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_ocr_p2</id>
+    <type>regular</type>
+    <sourceId>ocr</sourceId>
+    <destinationId>p2</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_p2_classify</id>
+    <type>regular</type>
+    <sourceId>p2</sourceId>
+    <destinationId>classify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_classify_p3</id>
+    <type>regular</type>
+    <sourceId>classify</sourceId>
+    <destinationId>p3</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_p3_extract</id>
+    <type>regular</type>
+    <sourceId>p3</sourceId>
+    <destinationId>extract_data</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_extract_p4</id>
+    <type>regular</type>
+    <sourceId>extract_data</sourceId>
+    <destinationId>p4</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_p4_validate</id>
+    <type>regular</type>
+    <sourceId>p4</sourceId>
+    <destinationId>validate</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_validate_p5</id>
+    <type>regular</type>
+    <sourceId>validate</sourceId>
+    <destinationId>p5</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_p5_archive</id>
+    <type>regular</type>
+    <sourceId>p5</sourceId>
+    <destinationId>archive</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_archive_p6</id>
+    <type>regular</type>
+    <sourceId>archive</sourceId>
+    <destinationId>p6</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_p6_notify</id>
+    <type>regular</type>
+    <sourceId>p6</sourceId>
+    <destinationId>notify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_notify_p_notify</id>
+    <type>regular</type>
+    <sourceId>notify</sourceId>
+    <destinationId>p_notify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_p_notify_done</id>
+    <type>regular</type>
+    <sourceId>p_notify</sourceId>
+    <destinationId>done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_done_p_done</id>
+    <type>regular</type>
+    <sourceId>done</sourceId>
+    <destinationId>p_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Error branch -->
+  <arc>
+    <id>a_error_p_error</id>
+    <type>regular</type>
+    <sourceId>handle_error</sourceId>
+    <destinationId>p_error</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_p_error_notify</id>
+    <type>regular</type>
+    <sourceId>p_error</sourceId>
+    <destinationId>notify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="9">
+<![CDATA[
+            async.run { assignTask("receive_document"); finishTask("receive_document") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
