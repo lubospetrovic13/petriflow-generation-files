@@ -1,0 +1,1088 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <!-- METADATA -->
+  <id>leave_request_approval</id>
+  <version>1.0.0</version>
+  <initials>LVE</initials>
+  <title>Leave Request Approval</title>
+  <icon>event</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>employee</id>
+    <title>Employee</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>hr</id>
+    <title>HR</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- DATA FIELDS -->
+  <data type="text">
+    <id>employee_name</id>
+    <title>Employee Name</title>
+    <placeholder>Your full name</placeholder>
+  </data>
+  <data type="text">
+    <id>employee_email</id>
+    <title>Email</title>
+    <placeholder>your.email@company.com</placeholder>
+    <validations>
+      <validation>
+        <expression>regex ^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$</expression>
+        <message>Please enter a valid email address</message>
+      </validation>
+    </validations>
+  </data>
+  <data type="enumeration_map">
+    <id>leave_type</id>
+    <title>Leave Type</title>
+    <options>
+      <option key="vacation">Vacation</option>
+      <option key="sick">Sick Leave</option>
+      <option key="personal">Personal Leave</option>
+      <option key="unpaid">Unpaid Leave</option>
+    </options>
+    <init>vacation</init>
+  </data>
+  <data type="date">
+    <id>start_date</id>
+    <title>Start Date</title>
+  </data>
+  <data type="date">
+    <id>end_date</id>
+    <title>End Date</title>
+  </data>
+  <data type="number">
+    <id>days_requested</id>
+    <title>Number of Days</title>
+    <placeholder>Calculated automatically</placeholder>
+  </data>
+  <data type="text">
+    <id>reason</id>
+    <title>Reason for Leave</title>
+    <placeholder>Brief description...</placeholder>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="fileList">
+    <id>attachments</id>
+    <title>Attachments</title>
+    <desc>Optional: medical certificate, travel documents, etc.</desc>
+  </data>
+  <data type="text">
+    <id>request_status</id>
+    <title>Request Status</title>
+    <value>New</value>
+  </data>
+  <data type="text">
+    <id>manager_decision</id>
+    <title>Manager Decision</title>
+  </data>
+  <data type="text">
+    <id>manager_comments</id>
+    <title>Manager Comments</title>
+    <placeholder>Optional comments...</placeholder>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>hr_notes</id>
+    <title>HR Notes</title>
+    <placeholder>Processing notes...</placeholder>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="dateTime">
+    <id>submitted_at</id>
+    <title>Submitted At</title>
+  </data>
+  <data type="dateTime">
+    <id>manager_reviewed_at</id>
+    <title>Manager Reviewed At</title>
+  </data>
+  <data type="dateTime">
+    <id>hr_processed_at</id>
+    <title>HR Processed At</title>
+  </data>
+  <data type="number">
+    <id>to_hr</id>
+    <title>Route to HR</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_rejected</id>
+    <title>Route to Rejected</title>
+    <init>0</init>
+  </data>
+  <data type="taskRef">
+    <id>form_panel</id>
+    <title>Request Details</title>
+    <init>t9</init>
+  </data>
+  <data type="i18n">
+    <id>divider_decision</id>
+    <title>Manager Decision</title>
+    <init>Manager Decision</init>
+  </data>
+  <data type="i18n">
+    <id>divider_hr</id>
+    <title>HR Processing</title>
+    <init>HR Processing</init>
+  </data>
+  <!-- TRANSITIONS -->
+  <!-- t1: Submit Request (Employee) -->
+  <transition>
+    <id>t1</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Submit Leave Request</label>
+    <icon>send</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>submit_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Leave Request Form</title>
+      <dataRef>
+        <id>employee_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>employee_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>days_requested</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>3</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachments</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>7</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t1_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            start_date: f.start_date,
+            end_date: f.end_date,
+            days_requested: f.days_requested,
+            request_status: f.request_status,
+            submitted_at: f.submitted_at;
+            
+            // Calculate days
+            def daysDiff = ((end_date.value as java.util.Date).time - (start_date.value as java.util.Date).time) / (1000 <em> 60 </em> 60 * 24)
+            change days_requested value { (daysDiff + 1) as java.lang.Double }
+            
+            // Update status and timestamp
+            change request_status value { "Pending Manager Review" }
+            change submitted_at value { new java.util.Date() }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="2">
+<![CDATA[
+            employee_email: f.employee_email,
+            employee_name: f.employee_name,
+            leave_type: f.leave_type,
+            start_date: f.start_date,
+            end_date: f.end_date,
+            days_requested: f.days_requested;
+            
+            // Send confirmation email to employee
+            sendEmail(
+            [employee_email.value],
+            "Leave Request Submitted - ${useCase.title}",
+            "Dear ${employee_name.value},\n\nYour leave request has been submitted successfully:\n\n" +
+            "Type: ${leave_type.value}\n" +
+            "Dates: ${start_date.value?.format('dd/MM/yyyy')} - ${end_date.value?.format('dd/MM/yyyy')}\n" +
+            "Days: ${days_requested.value}\n\n" +
+            "Your manager will review your request shortly.\n\n" +
+            "You can track the status in eTask."
+            )
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- t2: Manager Review -->
+  <transition>
+    <id>t2</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>assignment_ind</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>manager_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Leave Request</title>
+      <dataRef>
+        <id>form_panel</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>divider_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>divider</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>manager_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comments</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>3</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="assign">
+      <id>t2_assign</id>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            employee_email: f.employee_email,
+            employee_name: f.employee_name;
+            
+            // Notify manager (logged user who assigned the task)
+            def managerEmail = userService.loggedOrSystem.email
+            sendEmail(
+            [managerEmail],
+            "New Leave Request to Review - ${useCase.title}",
+            "A leave request from ${employee_name.value} (${employee_email.value}) is awaiting your review.\n\n" +
+            "Please review and approve or reject the request in eTask."
+            )
+            ]]>
+        </action>
+      </actions>
+    </event>
+    <event type="finish">
+      <id>t2_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            manager_decision: f.manager_decision,
+            to_hr: f.to_hr,
+            to_rejected: f.to_rejected,
+            request_status: f.request_status,
+            manager_reviewed_at: f.manager_reviewed_at;
+            
+            // Update timestamp
+            change manager_reviewed_at value { new java.util.Date() }
+            
+            // Route based on decision
+            if (manager_decision.value?.toLowerCase()?.contains("approve")) {
+            change to_hr value { 1 as java.lang.Double }
+            change to_rejected value { 0 as java.lang.Double }
+            change request_status value { "Approved by Manager - Pending HR Processing" }
+            } else {
+            change to_hr value { 0 as java.lang.Double }
+            change to_rejected value { 1 as java.lang.Double }
+            change request_status value { "Rejected by Manager" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="5">
+<![CDATA[
+            employee_email: f.employee_email,
+            employee_name: f.employee_name,
+            manager_decision: f.manager_decision,
+            manager_comments: f.manager_comments,
+            leave_type: f.leave_type,
+            start_date: f.start_date,
+            end_date: f.end_date;
+            
+            def managerName = userService.loggedOrSystem.name + " " + userService.loggedOrSystem.surname
+            def decision = manager_decision.value ?: "reviewed"
+            
+            // Notify employee of decision
+            sendEmail(
+            [employee_email.value],
+            "Leave Request ${decision} - ${useCase.title}",
+            "Dear ${employee_name.value},\n\n" +
+            "Your leave request has been ${decision} by ${managerName}.\n\n" +
+            "Request Details:\n" +
+            "Type: ${leave_type.value}\n" +
+            "Dates: ${start_date.value?.format('dd/MM/yyyy')} - ${end_date.value?.format('dd/MM/yyyy')}\n\n" +
+            (manager_comments.value ? "Manager Comments: ${manager_comments.value}\n\n" : "") +
+            (decision?.toLowerCase()?.contains("approve") ?
+            "HR will process your request shortly." :
+            "This request has been closed.")
+            )
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- t4: HR Processing -->
+  <transition>
+    <id>t4</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>HR Processing</label>
+    <icon>check_circle</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>hr</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>hr_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>HR Processing</title>
+      <dataRef>
+        <id>form_panel</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_decision</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comments</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>divider_hr</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>divider</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>hr_notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>3</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="assign">
+      <id>t4_assign</id>
+      <actions phase="post">
+        <action id="6">
+<![CDATA[
+            employee_name: f.employee_name,
+            leave_type: f.leave_type,
+            start_date: f.start_date,
+            end_date: f.end_date,
+            days_requested: f.days_requested;
+            
+            // Notify HR
+            def hrEmail = userService.loggedOrSystem.email
+            sendEmail(
+            [hrEmail],
+            "Leave Request Ready for Processing - ${useCase.title}",
+            "A leave request from ${employee_name.value} has been approved by their manager and is ready for HR processing.\n\n" +
+            "Type: ${leave_type.value}\n" +
+            "Dates: ${start_date.value?.format('dd/MM/yyyy')} - ${end_date.value?.format('dd/MM/yyyy')}\n" +
+            "Days: ${days_requested.value}\n\n" +
+            "Please complete the processing in eTask."
+            )
+            ]]>
+        </action>
+      </actions>
+    </event>
+    <event type="finish">
+      <id>t4_finish</id>
+      <actions phase="pre">
+        <action id="7">
+<![CDATA[
+            request_status: f.request_status,
+            hr_processed_at: f.hr_processed_at;
+            
+            change request_status value { "Completed - Leave Approved and Recorded" }
+            change hr_processed_at value { new java.util.Date() }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="8">
+<![CDATA[
+            employee_email: f.employee_email,
+            employee_name: f.employee_name,
+            leave_type: f.leave_type,
+            start_date: f.start_date,
+            end_date: f.end_date,
+            days_requested: f.days_requested;
+            
+            // Final notification to employee
+            sendEmail(
+            [employee_email.value],
+            "Leave Request Completed - ${useCase.title}",
+            "Dear ${employee_name.value},\n\n" +
+            "Your leave request has been fully processed and approved by HR.\n\n" +
+            "Approved Leave:\n" +
+            "Type: ${leave_type.value}\n" +
+            "Dates: ${start_date.value?.format('dd/MM/yyyy')} - ${end_date.value?.format('dd/MM/yyyy')}\n" +
+            "Days: ${days_requested.value}\n\n" +
+            "This leave has been recorded in the HR system.\n\n" +
+            "Enjoy your time off!"
+            )
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- t5: Detail View (Always accessible) -->
+  <transition>
+    <id>t5</id>
+    <x>688</x>
+    <y>16</y>
+    <label>View Request Status</label>
+    <icon>description</icon>
+    <priority>2</priority>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>detail_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Request Status</title>
+      <dataRef>
+        <id>request_status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>form_panel</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>submitted_at</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_decision</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_reviewed_at</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comments</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_notes</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_processed_at</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>8</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- t9: Form Task (System - embedded context panel) -->
+  <transition>
+    <id>t9</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Form Context</label>
+    <priority>3</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>form_context_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Request Information</title>
+      <dataRef>
+        <id>employee_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>employee_email</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>days_requested</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>3</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachments</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>7</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_main</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Pending Manager Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_hr</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Pending HR Processing</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done</id>
+    <x>1264</x>
+    <y>208</y>
+    <label>Completed</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>880</x>
+    <y>400</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_detail</id>
+    <x>496</x>
+    <y>16</y>
+    <label>Detail View</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_form</id>
+    <x>112</x>
+    <y>304</y>
+    <label>Form Context</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <!-- Form task arcs (read arc - always accessible) -->
+  <arc>
+    <id>arc_form_in</id>
+    <type>regular</type>
+    <sourceId>p_form</sourceId>
+    <destinationId>t9</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_form_read</id>
+    <type>read</type>
+    <sourceId>p_form</sourceId>
+    <destinationId>t9</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Main flow arcs -->
+  <arc>
+    <id>arc_start_to_t1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>t1</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_t1_to_main</id>
+    <type>regular</type>
+    <sourceId>t1</sourceId>
+    <destinationId>p_main</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_main_to_t2</id>
+    <type>regular</type>
+    <sourceId>p_main</sourceId>
+    <destinationId>t2</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Variable arcs from t2 (Manager decision routing) -->
+  <arc>
+    <id>arc_t2_to_hr</id>
+    <type>regular</type>
+    <sourceId>t2</sourceId>
+    <destinationId>p_hr</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_hr</reference>
+  </arc>
+  <arc>
+    <id>arc_t2_to_rejected</id>
+    <type>regular</type>
+    <sourceId>t2</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_rejected</reference>
+  </arc>
+  <!-- HR processing arc -->
+  <arc>
+    <id>arc_hr_to_t4</id>
+    <type>regular</type>
+    <sourceId>p_hr</sourceId>
+    <destinationId>t4</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_t4_to_done</id>
+    <type>regular</type>
+    <sourceId>t4</sourceId>
+    <destinationId>p_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Detail view arcs (read arc - always accessible) -->
+  <arc>
+    <id>arc_t1_to_detail</id>
+    <type>regular</type>
+    <sourceId>t1</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_detail_read</id>
+    <type>read</type>
+    <sourceId>p_detail</sourceId>
+    <destinationId>t5</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="9">
+<![CDATA[
+            request_status: f.request_status;
+            
+            // Initialize case with start place token
+            change request_status value { "New" }
+            
+            // Set case color
+            changeCaseProperty("color").about { "blue" }
+            
+            // Bootstrap form task so taskRef works immediately
+            async.run {
+            def formTask = findTask { qTask ->
+            qTask.transitionId.eq("t9").and(qTask.caseId.eq(useCase.stringId))
+            }
+            if (formTask) {
+            assignTask(formTask, userService.loggedOrSystem)
+            finishTask(formTask)
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
