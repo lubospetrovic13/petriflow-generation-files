@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>email_llm_pipeline</id>
+  <version>1.0.0</version>
+  <initials>LLM</initials>
+  <title>Email Pipeline with LLM Classification</title>
+  <icon>psychology</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>system</id>
+    <title>System Service</title>
+  </role>
+  <!-- DATA FIELDS -->
+  <data type="text">
+    <id>sender_email</id>
+    <title>Sender</title>
+  </data>
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+  </data>
+  <data type="text">
+    <id>body</id>
+    <title>Email Body</title>
+    <component>
+      <n>textarea</n>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>ai_category</id>
+    <title>LLM Category</title>
+    <options>
+      <option key="support">Support</option>
+      <option key="sales">Sales</option>
+      <option key="billing">Billing</option>
+      <option key="spam">Spam</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>confidence_score</id>
+    <title>LLM Confidence (%)</title>
+    <init>0</init>
+  </data>
+  <!-- TRANSITIONS -->
+  <transition>
+    <id>receive_email</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Receive Email</label>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg1</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Email Input</title>
+      <dataRef>
+        <id>sender_email</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>body</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_rec_fin</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run {
+            def t = findTask { q -> q.transitionId.eq("ai_classify").and(q.caseId.eq(useCase.stringId)) }
+            if (t) { assignTask(t, userService.loggedOrSystem); finishTask(t, userService.loggedOrSystem) }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>ai_classify</id>
+    <x>304</x>
+    <y>208</y>
+    <label>LLM Classification</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_llm_call</id>
+      <actions phase="post">
+        <action id="2">
+<![CDATA[
+            body: f.body, subject: f.subject;
+            async.run {
+            def apiKey = "YOUR_API_KEY"
+            def apiUrl = "https://api.openai.com/v1/chat/completions"
+            def prompt = "Classify this email into one of these categories: support, sales, billing, spam. Return ONLY JSON: {\"category\": \"...\", \"confidence\": 0.95}. Subject: ${subject.value}. Body: ${body.value}"
+            
+            def payload = groovy.json.JsonOutput.toJson([
+            model: "gpt-4",
+            messages: [[role: "user", content: prompt]],
+            temperature: 0
+            ])
+            
+            def conn = (java.net.HttpURLConnection) new java.net.URL(apiUrl).openConnection()
+            conn.setRequestMethod("POST")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("Authorization", "Bearer " + apiKey)
+            conn.setDoOutput(true)
+            conn.getOutputStream().write(payload.getBytes("UTF-8"))
+            
+            if (conn.responseCode == 200) {
+            def response = new groovy.json.JsonSlurper().parseText(conn.inputStream.text)
+            def content = new groovy.json.JsonSlurper().parseText(response.choices[0].message.content)
+            
+            def t = findTask { q -> q.transitionId.eq("verify_route").and(q.caseId.eq(useCase.stringId)) }
+            if (t) {
+            setData(t, [
+            ai_category: [value: content.category, type: "enumeration_map"],
+            confidence_score: [value: (content.confidence * 100) as Double, type: "number"]
+            ])
+            }
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>verify_route</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Verify AI Result</label>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg2</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review</title>
+      <dataRef>
+        <id>ai_category</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>confidence_score</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p1</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Pending AI</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p2</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Pending Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>end</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>receive_email</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>receive_email</sourceId>
+    <destinationId>p1</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p1</sourceId>
+    <destinationId>ai_classify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>ai_classify</sourceId>
+    <destinationId>p2</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p2</sourceId>
+    <destinationId>verify_route</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>verify_route</sourceId>
+    <destinationId>end</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <caseEvents>
+    <event type="create">
+      <id>create</id>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            changeCaseProperty("title").about { "Email Processing Case" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
