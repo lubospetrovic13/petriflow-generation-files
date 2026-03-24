@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>email_ai_pipeline</id>
+  <version>1.0.0</version>
+  <initials>EAP</initials>
+  <title>Email AI Processing Pipeline</title>
+  <icon>mail_outline</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>system</id>
+    <title>System Service</title>
+  </role>
+  <!-- DATA FIELDS -->
+  <data type="text">
+    <id>sender_email</id>
+    <title>Sender Email</title>
+    <placeholder>example@domain.com</placeholder>
+  </data>
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+  </data>
+  <data type="text">
+    <id>body</id>
+    <title>Email Body</title>
+    <component>
+      <n>textarea</n>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>ai_category</id>
+    <title>AI Classification</title>
+    <options>
+      <option key="support">Support</option>
+      <option key="sales">Sales</option>
+      <option key="billing">Billing</option>
+      <option key="spam">Spam</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>confidence_score</id>
+    <title>AI Confidence Score (%)</title>
+    <init>0</init>
+  </data>
+  <data type="enumeration">
+    <id>priority</id>
+    <title>Priority</title>
+    <options>
+      <option>Low</option>
+      <option>Medium</option>
+      <option>High</option>
+    </options>
+  </data>
+  <!-- TRANSITIONS -->
+  <transition>
+    <id>receive_email</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Receive Email</label>
+    <icon>email</icon>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_receive</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Incoming Email</title>
+      <dataRef>
+        <id>sender_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>body</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_receive_finish</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run {
+            def t = findTask { q -> q.transitionId.eq("ai_classify").and(q.caseId.eq(useCase.stringId)) }
+            if (t) {
+            assignTask(t, userService.loggedOrSystem)
+            finishTask(t, userService.loggedOrSystem)
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>ai_classify</id>
+    <x>304</x>
+    <y>208</y>
+    <label>AI Classification</label>
+    <icon>psychology</icon>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_ai_logic</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            body: f.body, cat: f.ai_category, conf: f.confidence_score;
+            def text = body.value?.toLowerCase() ?: ""
+            
+            if (text.contains("help") || text.contains("issue")) {
+            change cat value { "support" }
+            change conf value { 85.0 }
+            } else if (text.contains("buy") || text.contains("price")) {
+            change cat value { "sales" }
+            change conf value { 90.0 }
+            } else if (text.contains("invoice") || text.contains("pay")) {
+            change cat value { "billing" }
+            change conf value { 80.0 }
+            } else if (text.contains("win") || text.contains("prize")) {
+            change cat value { "spam" }
+            change conf value { 99.0 }
+            } else {
+            change cat value { "support" }
+            change conf value { 50.0 }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>verify_route</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Verify &amp; Route</label>
+    <icon>rule</icon>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_verify</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>AI Verification</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>body</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>ai_category</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>confidence_score</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>priority</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>resolve</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Resolve Ticket</label>
+    <icon>check_circle</icon>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_resolve</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Final Resolution</title>
+      <dataRef>
+        <id>sender_email</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>priority</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>New</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p1</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Received</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p2</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Classified</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p3</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Verified</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>end</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Resolved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>receive_email</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>receive_email</sourceId>
+    <destinationId>p1</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p1</sourceId>
+    <destinationId>ai_classify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>ai_classify</sourceId>
+    <destinationId>p2</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p2</sourceId>
+    <destinationId>verify_route</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>verify_route</sourceId>
+    <destinationId>p3</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>p3</sourceId>
+    <destinationId>resolve</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>resolve</sourceId>
+    <destinationId>end</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>on_case_create</id>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            changeCaseProperty("title").about { "Email Pipeline: Initializing" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
