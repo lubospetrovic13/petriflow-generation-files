@@ -1,0 +1,1014 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>leave_request_approval</id>
+  <version>1.0.0</version>
+  <initials>LRA</initials>
+  <title>Leave Request Approval – Extended</title>
+  <icon>event_note</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>employee</id>
+    <title>Employee</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>hr</id>
+    <title>HR</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- DATA FIELDS -->
+  <data type="enumeration_map">
+    <id>leave_type</id>
+    <title>Leave Type</title>
+    <options>
+      <option>
+        <key>vacation</key>
+        <value>Vacation</value>
+      </option>
+      <option>
+        <key>sick</key>
+        <value>Sick</value>
+      </option>
+      <option>
+        <key>unpaid</key>
+        <value>Unpaid</value>
+      </option>
+      <option>
+        <key>other</key>
+        <value>Other</value>
+      </option>
+    </options>
+    <init>vacation</init>
+  </data>
+  <data type="date">
+    <id>start_date</id>
+    <title>Start Date</title>
+  </data>
+  <data type="date">
+    <id>end_date</id>
+    <title>End Date</title>
+  </data>
+  <data type="text">
+    <id>reason</id>
+    <title>Reason</title>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment</title>
+  </data>
+  <data type="text">
+    <id>request_id</id>
+    <title>Request ID</title>
+  </data>
+  <data type="enumeration_map">
+    <id>status</id>
+    <title>Status</title>
+    <options>
+      <option>
+        <key>draft</key>
+        <value>Draft</value>
+      </option>
+      <option>
+        <key>pending_manager</key>
+        <value>Pending Manager</value>
+      </option>
+      <option>
+        <key>pending_hr</key>
+        <value>Pending HR</value>
+      </option>
+      <option>
+        <key>approved</key>
+        <value>Approved</value>
+      </option>
+      <option>
+        <key>rejected</key>
+        <value>Rejected</value>
+      </option>
+      <option>
+        <key>changes_requested</key>
+        <value>Changes Requested</value>
+      </option>
+      <option>
+        <key>cancelled</key>
+        <value>Cancelled</value>
+      </option>
+    </options>
+    <init>draft</init>
+  </data>
+  <data type="text">
+    <id>manager_comment</id>
+    <title>Manager Comment</title>
+  </data>
+  <data type="text">
+    <id>hr_comment</id>
+    <title>HR Comment</title>
+  </data>
+  <data type="text">
+    <id>rejection_reason</id>
+    <title>Rejection Reason</title>
+  </data>
+  <data type="text">
+    <id>audit_log</id>
+    <title>Audit Log</title>
+  </data>
+  <data type="number">
+    <id>leave_days</id>
+    <title>Leave Days</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>leave_balance</id>
+    <title>Leave Balance</title>
+    <init>0</init>
+  </data>
+  <data type="user">
+    <id>delegated_to</id>
+    <title>Delegated To</title>
+  </data>
+  <data type="boolean">
+    <id>is_extended</id>
+    <title>Is Extended Leave</title>
+    <init>false</init>
+  </data>
+  <data type="text">
+    <id>extended_approval_comment</id>
+    <title>Extended Approval Comment</title>
+  </data>
+  <data type="text">
+    <id>employee_email</id>
+    <title>Employee Email</title>
+  </data>
+  <!-- BRANCHING FIELDS FOR VARIABLE ARCS -->
+  <data type="number">
+    <id>to_manager</id>
+    <title>To Manager</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_rejected</id>
+    <title>To Rejected</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_changes</id>
+    <title>To Changes</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_delegate</id>
+    <title>To Delegate</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_hr</id>
+    <title>To HR</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_cancelled</id>
+    <title>To Cancelled</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_approved</id>
+    <title>To Approved</title>
+    <init>0</init>
+  </data>
+  <!-- TRANSITIONS -->
+  <!-- Employee submits leave request -->
+  <transition>
+    <id>submit</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Leave Request</label>
+    <icon>send</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>submit_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Leave Request</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>employee_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_submit_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            status: f.status, audit_log: f.audit_log, request_id: f.request_id, start_date: f.start_date, end_date: f.end_date, leave_days: f.leave_days;
+            // Generate request ID (simple timestamp-based)
+            def rid = "LR-" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+            change request_id value { rid }
+            // Calculate leave days (inclusive)
+            def days = java.time.temporal.ChronoUnit.DAYS.between(
+            start_date.value as java.time.LocalDate,
+            end_date.value as java.time.LocalDate
+            ) + 1
+            change leave_days value { days as Double }
+            // Set status
+            change status value { "pending_manager" }
+            // Audit log
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Submitted by Employee\n"
+            change audit_log value { log }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- System validation (balance, overlap, policy) -->
+  <transition>
+    <id>validate_system</id>
+    <x>304</x>
+    <y>208</y>
+    <label>System Validation</label>
+    <icon>check_circle</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>on_validate_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            leave_days: f.leave_days, leave_balance: f.leave_balance, start_date: f.start_date, end_date: f.end_date, status: f.status, audit_log: f.audit_log, to_manager: f.to_manager, to_rejected: f.to_rejected, is_extended: f.is_extended;
+            // Simulate leave balance fetch (e.g., 20 days)
+            def balance = 20.0
+            change leave_balance value { balance }
+            // Check for overlap (simulate: always OK)
+            def overlap = false
+            // Check for policy (simulate: always OK)
+            def policy_ok = true
+            // Extended leave threshold
+            def extended = leave_days.value > 10
+            change is_extended value { extended }
+            if (leave_days.value <= balance && !overlap && policy_ok) {
+            change to_manager value { 1 }
+            change to_rejected value { 0 }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] System validation passed\n"
+            change audit_log value { log }
+            } else {
+            change to_manager value { 0 }
+            change to_rejected value { 1 }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] System validation failed\n"
+            change audit_log value { log }
+            change status value { "rejected" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Manager review -->
+  <transition>
+    <id>manager_review</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>supervisor_account</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>manager_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Manager Decision</title>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>rejection_reason</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>delegated_to</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_manager_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            to_hr: f.to_hr, to_rejected: f.to_rejected, to_changes: f.to_changes, to_delegate: f.to_delegate, status: f.status, manager_comment: f.manager_comment, rejection_reason: f.rejection_reason, delegated_to: f.delegated_to, audit_log: f.audit_log, is_extended: f.is_extended;
+            // Simulate manager action selection (for demo: approve if no rejection_reason, else reject, else changes if comment, else delegate if delegated_to)
+            if (delegated_to.value) {
+            change to_delegate value { 1 }
+            change to_hr value { 0 }
+            change to_rejected value { 0 }
+            change to_changes value { 0 }
+            change status value { "pending_manager" }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Delegated by Manager to " + delegated_to.value + "\n"
+            change audit_log value { log }
+            } else if (rejection_reason.value) {
+            change to_delegate value { 0 }
+            change to_hr value { 0 }
+            change to_rejected value { 1 }
+            change to_changes value { 0 }
+            change status value { "rejected" }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Rejected by Manager: " + rejection_reason.value + "\n"
+            change audit_log value { log }
+            } else if (manager_comment.value && manager_comment.value.toLowerCase().contains("change")) {
+            change to_delegate value { 0 }
+            change to_hr value { 0 }
+            change to_rejected value { 0 }
+            change to_changes value { 1 }
+            change status value { "changes_requested" }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Changes requested by Manager: " + manager_comment.value + "\n"
+            change audit_log value { log }
+            } else {
+            change to_delegate value { 0 }
+            change to_hr value { 1 }
+            change to_rejected value { 0 }
+            change to_changes value { 0 }
+            change status value { "pending_hr" }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Approved by Manager\n"
+            change audit_log value { log }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- HR review -->
+  <transition>
+    <id>hr_review</id>
+    <x>880</x>
+    <y>208</y>
+    <label>HR Review</label>
+    <icon>verified_user</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>hr</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>hr_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>HR Decision</title>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>extended_approval_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_hr_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            to_approved: f.to_approved, to_rejected: f.to_rejected, status: f.status, hr_comment: f.hr_comment, extended_approval_comment: f.extended_approval_comment, audit_log: f.audit_log, is_extended: f.is_extended;
+            // Simulate HR action (approve if no hr_comment, else reject)
+            if (hr_comment.value && hr_comment.value.toLowerCase().contains("reject")) {
+            change to_approved value { 0 }
+            change to_rejected value { 1 }
+            change status value { "rejected" }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Rejected by HR: " + hr_comment.value + "\n"
+            change audit_log value { log }
+            } else {
+            change to_approved value { 1 }
+            change to_rejected value { 0 }
+            change status value { "approved" }
+            def log = (audit_log.value ?: "")
+            if (is_extended.value) {
+            log += "[" + java.time.LocalDateTime.now() + "] Extended leave approved: " + (extended_approval_comment.value ?: "") + "\n"
+            } else {
+            log += "[" + java.time.LocalDateTime.now() + "] Approved by HR\n"
+            }
+            change audit_log value { log }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Employee updates after changes requested -->
+  <transition>
+    <id>employee_update</id>
+    <x>688</x>
+    <y>400</y>
+    <label>Update Request</label>
+    <icon>edit</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>update_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Update Leave Request</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_update_finish</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status, audit_log: f.audit_log;
+            change status value { "pending_manager" }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Updated by Employee\n"
+            change audit_log value { log }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Employee cancels request -->
+  <transition>
+    <id>employee_cancel</id>
+    <x>496</x>
+    <y>400</y>
+    <label>Cancel Request</label>
+    <icon>cancel</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>on_cancel_finish</id>
+      <actions phase="pre">
+        <action id="6">
+<![CDATA[
+            status: f.status, audit_log: f.audit_log, to_cancelled: f.to_cancelled;
+            change status value { "cancelled" }
+            change to_cancelled value { 1 }
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Cancelled by Employee\n"
+            change audit_log value { log }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- System reminder/escalation -->
+  <transition>
+    <id>reminder_system</id>
+    <x>688</x>
+    <y>16</y>
+    <label>Send Reminder</label>
+    <icon>alarm</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>on_reminder_finish</id>
+      <actions phase="post">
+        <action id="7">
+<![CDATA[
+            audit_log: f.audit_log;
+            def log = (audit_log.value ?: "")
+            log += "[" + java.time.LocalDateTime.now() + "] Reminder sent to Manager/HR\n"
+            change audit_log value { log }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>p_submit</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_validate</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Validation</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_manager</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Pending Manager</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_hr</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Pending HR</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_approved</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>1072</x>
+    <y>304</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_changes</id>
+    <x>688</x>
+    <y>400</y>
+    <label>Changes Requested</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_delegate</id>
+    <x>688</x>
+    <y>304</y>
+    <label>Delegated</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_cancelled</id>
+    <x>1072</x>
+    <y>400</y>
+    <label>Cancelled</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_reminder</id>
+    <x>688</x>
+    <y>16</y>
+    <label>Reminder</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <arc>
+    <id>a_submit_validate</id>
+    <type>regular</type>
+    <sourceId>p_submit</sourceId>
+    <destinationId>submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_submit_to_validate</id>
+    <type>regular</type>
+    <sourceId>submit</sourceId>
+    <destinationId>p_validate</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_validate_to_manager</id>
+    <type>regular</type>
+    <sourceId>validate_system</sourceId>
+    <destinationId>p_manager</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_manager</reference>
+  </arc>
+  <arc>
+    <id>a_validate_to_rejected</id>
+    <type>regular</type>
+    <sourceId>validate_system</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_rejected</reference>
+  </arc>
+  <arc>
+    <id>a_validate</id>
+    <type>regular</type>
+    <sourceId>p_validate</sourceId>
+    <destinationId>validate_system</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_manager_to_hr</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_hr</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_hr</reference>
+  </arc>
+  <arc>
+    <id>a_manager_to_rejected</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_rejected</reference>
+  </arc>
+  <arc>
+    <id>a_manager_to_changes</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_changes</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_changes</reference>
+  </arc>
+  <arc>
+    <id>a_manager_to_delegate</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_delegate</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_delegate</reference>
+  </arc>
+  <arc>
+    <id>a_manager</id>
+    <type>regular</type>
+    <sourceId>p_manager</sourceId>
+    <destinationId>manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_delegate_to_manager</id>
+    <type>regular</type>
+    <sourceId>p_delegate</sourceId>
+    <destinationId>manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_changes_to_update</id>
+    <type>regular</type>
+    <sourceId>p_changes</sourceId>
+    <destinationId>employee_update</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_update_to_validate</id>
+    <type>regular</type>
+    <sourceId>employee_update</sourceId>
+    <destinationId>p_validate</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_hr_to_approved</id>
+    <type>regular</type>
+    <sourceId>hr_review</sourceId>
+    <destinationId>p_approved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_approved</reference>
+  </arc>
+  <arc>
+    <id>a_hr_to_rejected</id>
+    <type>regular</type>
+    <sourceId>hr_review</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_rejected</reference>
+  </arc>
+  <arc>
+    <id>a_hr</id>
+    <type>regular</type>
+    <sourceId>p_hr</sourceId>
+    <destinationId>hr_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_cancel_to_cancelled</id>
+    <type>regular</type>
+    <sourceId>employee_cancel</sourceId>
+    <destinationId>p_cancelled</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_cancelled</reference>
+  </arc>
+  <arc>
+    <id>a_manager_cancel</id>
+    <type>regular</type>
+    <sourceId>p_manager</sourceId>
+    <destinationId>employee_cancel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_hr_cancel</id>
+    <type>regular</type>
+    <sourceId>p_hr</sourceId>
+    <destinationId>employee_cancel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_changes_cancel</id>
+    <type>regular</type>
+    <sourceId>p_changes</sourceId>
+    <destinationId>employee_cancel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_delegate_cancel</id>
+    <type>regular</type>
+    <sourceId>p_delegate</sourceId>
+    <destinationId>employee_cancel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_validate_cancel</id>
+    <type>regular</type>
+    <sourceId>p_validate</sourceId>
+    <destinationId>employee_cancel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_reminder_read</id>
+    <type>read</type>
+    <sourceId>p_reminder</sourceId>
+    <destinationId>reminder_system</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_manager_reminder</id>
+    <type>regular</type>
+    <sourceId>p_manager</sourceId>
+    <destinationId>reminder_system</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a_hr_reminder</id>
+    <type>regular</type>
+    <sourceId>p_hr</sourceId>
+    <destinationId>reminder_system</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>on_case_create</id>
+      <actions phase="post">
+        <action id="8">
+<![CDATA[
+            async.run { assignTask("submit"); }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
