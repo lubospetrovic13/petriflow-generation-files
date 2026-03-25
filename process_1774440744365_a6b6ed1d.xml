@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>leave_request_approval</id>
+  <version>1.0.0</version>
+  <initials>LRA</initials>
+  <title>Leave Request Approval</title>
+  <icon>event</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>employee</id>
+    <title>Employee</title>
+  </role>
+  <role>
+    <id>hr</id>
+    <title>HR</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- DATA FIELDS -->
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment</title>
+    <component>
+      <name>preview</name>
+    </component>
+  </data>
+  <data type="date">
+    <id>end_date</id>
+    <title>End Date</title>
+  </data>
+  <data type="text">
+    <id>hr_comment</id>
+    <title>HR Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>hr_decision</id>
+    <title>HR Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>hr_email</id>
+    <title>HR Email</title>
+  </data>
+  <data type="dateTime">
+    <id>hr_reviewed_at</id>
+    <title>HR Reviewed At</title>
+  </data>
+  <data type="text">
+    <id>hr_reviewer</id>
+    <title>HR Reviewer</title>
+  </data>
+  <data type="text">
+    <id>leave_reason</id>
+    <title>Reason</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>leave_type</id>
+    <title>Leave Type</title>
+    <options>
+      <option key="vacation">Vacation</option>
+      <option key="sick">Sick</option>
+      <option key="unpaid">Unpaid</option>
+      <option key="other">Other</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>manager_comment</id>
+    <title>Manager Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>manager_decision</id>
+    <title>Manager Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>manager_email</id>
+    <title>Manager Email</title>
+  </data>
+  <data type="dateTime">
+    <id>manager_reviewed_at</id>
+    <title>Manager Reviewed At</title>
+  </data>
+  <data type="text">
+    <id>manager_reviewer</id>
+    <title>Manager Reviewer</title>
+  </data>
+  <data type="text">
+    <id>requester_email</id>
+    <title>Requester Email</title>
+  </data>
+  <data type="date">
+    <id>start_date</id>
+    <title>Start Date</title>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+  </data>
+  <data type="number">
+    <id>to_hr</id>
+    <title>To HR</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_rejected</id>
+    <title>To Rejected</title>
+    <init>0</init>
+  </data>
+  <!-- TRANSITIONS -->
+  <transition>
+    <id>hr_review</id>
+    <x>880</x>
+    <y>208</y>
+    <label>HR Review</label>
+    <icon>assignment_ind</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>hr</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>hr_review_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>HR Review</title>
+      <dataRef>
+        <id>hr_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_hr_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            hr_decision: f.hr_decision, to_hr: f.to_hr, to_rejected: f.to_rejected, status: f.status, hr_reviewer: f.hr_reviewer, hr_reviewed_at: f.hr_reviewed_at;
+            if (hr_decision.value == "approve") {
+            change to_hr value { 1 }
+            change to_rejected value { 0 }
+            change status value { "HR Approved" }
+            } else {
+            change to_hr value { 0 }
+            change to_rejected value { 1 }
+            change status value { "HR Rejected" }
+            }
+            change hr_reviewer value { userService.loggedOrSystem.email }
+            change hr_reviewed_at value { java.time.LocalDateTime.now() }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="2">
+<![CDATA[
+            requester_email: f.requester_email, status: f.status;
+            sendEmail([requester_email.value], "Leave Request Update", "Status: ${status.value}")
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>manager_review</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>supervisor_account</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>manager_review_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Manager Review</title>
+      <dataRef>
+        <id>manager_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_manager_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            manager_decision: f.manager_decision, to_hr: f.to_hr, to_rejected: f.to_rejected, status: f.status, manager_reviewer: f.manager_reviewer, manager_reviewed_at: f.manager_reviewed_at;
+            if (manager_decision.value == "approve") {
+            change to_hr value { 1 }
+            change to_rejected value { 0 }
+            change status value { "Manager Approved" }
+            } else {
+            change to_hr value { 0 }
+            change to_rejected value { 1 }
+            change status value { "Manager Rejected" }
+            }
+            change manager_reviewer value { userService.loggedOrSystem.email }
+            change manager_reviewed_at value { java.time.LocalDateTime.now() }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="4">
+<![CDATA[
+            requester_email: f.requester_email, status: f.status;
+            sendEmail([requester_email.value], "Leave Request Update", "Status: ${status.value}")
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>submit_request</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Request</label>
+    <icon>send</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>submit_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Leave Request</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>leave_reason</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_submit_finish</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status, requester_email: f.requester_email;
+            change status value { "Submitted" }
+            change requester_email value { userService.loggedOrSystem.email }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>done</id>
+    <x>1264</x>
+    <y>208</y>
+    <label>Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_hr</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Pending HR</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_manager</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Pending Manager</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>rejected</id>
+    <x>1264</x>
+    <y>368</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <arc>
+    <id>arc_done</id>
+    <type>regular</type>
+    <sourceId>hr_review</sourceId>
+    <destinationId>done</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_hr</reference>
+  </arc>
+  <arc>
+    <id>arc_hr_review</id>
+    <type>regular</type>
+    <sourceId>p_hr</sourceId>
+    <destinationId>hr_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_manager_review</id>
+    <type>regular</type>
+    <sourceId>p_manager</sourceId>
+    <destinationId>manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_manager_to_hr</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_hr</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_hr</reference>
+  </arc>
+  <arc>
+    <id>arc_manager_to_rejected</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_rejected</reference>
+  </arc>
+  <arc>
+    <id>arc_hr_to_rejected</id>
+    <type>regular</type>
+    <sourceId>hr_review</sourceId>
+    <destinationId>rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_rejected</reference>
+  </arc>
+  <arc>
+    <id>arc_start_submit</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit_request</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_submit_manager</id>
+    <type>regular</type>
+    <sourceId>submit_request</sourceId>
+    <destinationId>p_manager</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>on_case_create</id>
+      <actions phase="post">
+        <action id="6">
+<![CDATA[
+            status: f.status;
+            change status value { "Draft" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
