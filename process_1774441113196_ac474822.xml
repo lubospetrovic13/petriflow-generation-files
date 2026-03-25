@@ -1,0 +1,617 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>purchase_order_parallel_review</id>
+  <version>1.0.0</version>
+  <initials>PO</initials>
+  <title>Purchase Order Parallel Review</title>
+  <icon>assignment</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES -->
+  <role>
+    <id>employee</id>
+    <title>Employee</title>
+  </role>
+  <role>
+    <id>finance_officer</id>
+    <title>Finance Officer</title>
+  </role>
+  <role>
+    <id>legal_officer</id>
+    <title>Legal Officer</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- DATA -->
+  <data type="number">
+    <id>amount</id>
+    <title>Amount</title>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment</title>
+    <component>
+      <name>preview</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>finance_comment</id>
+    <title>Finance Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>finance_decision</id>
+    <title>Finance Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>finance_approve</id>
+    <title>Finance Approve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>finance_reject</id>
+    <title>Finance Reject</title>
+    <init>0</init>
+  </data>
+  <data type="text">
+    <id>legal_comment</id>
+    <title>Legal Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>legal_decision</id>
+    <title>Legal Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>legal_approve</id>
+    <title>Legal Approve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>legal_reject</id>
+    <title>Legal Reject</title>
+    <init>0</init>
+  </data>
+  <data type="text">
+    <id>order_description</id>
+    <title>Order Description</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+  </data>
+  <data type="text">
+    <id>vendor</id>
+    <title>Vendor</title>
+  </data>
+  <!-- TRANSITIONS -->
+  <transition>
+    <id>review_finance</id>
+    <x>688</x>
+    <y>368</y>
+    <label>Finance Review</label>
+    <icon>account_balance</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>finance_officer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>finance_review_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Finance Review</title>
+      <dataRef>
+        <id>finance_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_review_finance_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            finance_approve: f.finance_approve, finance_reject: f.finance_reject, finance_decision: f.finance_decision, status: f.status;
+            if (finance_decision.value == "approve") {
+            change finance_approve value { 1 }
+            change finance_reject value { 0 }
+            change status value { "Finance Approved" }
+            } else {
+            change finance_approve value { 0 }
+            change finance_reject value { 1 }
+            change status value { "Rejected by Finance" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>review_legal</id>
+    <x>688</x>
+    <y>48</y>
+    <label>Legal Review</label>
+    <icon>gavel</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>legal_officer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>legal_review_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Legal Review</title>
+      <dataRef>
+        <id>legal_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_review_legal_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            legal_approve: f.legal_approve, legal_reject: f.legal_reject, legal_decision: f.legal_decision, status: f.status;
+            if (legal_decision.value == "approve") {
+            change legal_approve value { 1 }
+            change legal_reject value { 0 }
+            change status value { "Legal Approved" }
+            } else {
+            change legal_approve value { 0 }
+            change legal_reject value { 1 }
+            change status value { "Rejected by Legal" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>split_parallel_review</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Start Parallel Review</label>
+    <icon>call_split</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+  </transition>
+  <transition>
+    <id>submit_order</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Submit Order</label>
+    <icon>send</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>submit_order_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Purchase Order</title>
+      <dataRef>
+        <id>order_description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>vendor</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ev_submit_order_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            status: f.status;
+            change status value { "Submitted" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>finalize_approved</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Finalize Approved</label>
+    <icon>check_circle</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_finalize_approved_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            status: f.status;
+            change status value { "Approved" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>finalize_rejected</id>
+    <x>1072</x>
+    <y>432</y>
+    <label>Finalize Rejected</label>
+    <icon>cancel</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_finalize_rejected_finish</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status;
+            change status value { "Rejected" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>approved</id>
+    <x>1264</x>
+    <y>208</y>
+    <label>Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>finance_done</id>
+    <x>880</x>
+    <y>368</y>
+    <label>Finance Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>finance_p</id>
+    <x>496</x>
+    <y>368</y>
+    <label>Finance Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>join</id>
+    <x>976</x>
+    <y>208</y>
+    <label>Both Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>legal_done</id>
+    <x>880</x>
+    <y>48</y>
+    <label>Legal Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>legal_p</id>
+    <x>496</x>
+    <y>48</y>
+    <label>Legal Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>pending_split</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Pending Split</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>rejected</id>
+    <x>1264</x>
+    <y>432</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <arc>
+    <id>arc_finance_done_join</id>
+    <type>regular</type>
+    <sourceId>finance_done</sourceId>
+    <destinationId>join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_finance_p_review_finance</id>
+    <type>regular</type>
+    <sourceId>finance_p</sourceId>
+    <destinationId>review_finance</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_join_finalize_approved</id>
+    <type>regular</type>
+    <sourceId>join</sourceId>
+    <destinationId>finalize_approved</destinationId>
+    <multiplicity>2</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_legal_done_join</id>
+    <type>regular</type>
+    <sourceId>legal_done</sourceId>
+    <destinationId>join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_legal_p_review_legal</id>
+    <type>regular</type>
+    <sourceId>legal_p</sourceId>
+    <destinationId>review_legal</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_pending_split_split_parallel_review</id>
+    <type>regular</type>
+    <sourceId>pending_split</sourceId>
+    <destinationId>split_parallel_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_review_finance_finance_approve</id>
+    <type>regular</type>
+    <sourceId>review_finance</sourceId>
+    <destinationId>finance_done</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>finance_approve</reference>
+  </arc>
+  <arc>
+    <id>arc_review_finance_finance_reject</id>
+    <type>regular</type>
+    <sourceId>review_finance</sourceId>
+    <destinationId>rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>finance_reject</reference>
+  </arc>
+  <arc>
+    <id>arc_review_legal_legal_approve</id>
+    <type>regular</type>
+    <sourceId>review_legal</sourceId>
+    <destinationId>legal_done</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>legal_approve</reference>
+  </arc>
+  <arc>
+    <id>arc_review_legal_legal_reject</id>
+    <type>regular</type>
+    <sourceId>review_legal</sourceId>
+    <destinationId>rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>legal_reject</reference>
+  </arc>
+  <arc>
+    <id>arc_split_finance_p</id>
+    <type>regular</type>
+    <sourceId>split_parallel_review</sourceId>
+    <destinationId>finance_p</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_split_legal_p</id>
+    <type>regular</type>
+    <sourceId>split_parallel_review</sourceId>
+    <destinationId>legal_p</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_start_submit_order</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_submit_order_pending_split</id>
+    <type>regular</type>
+    <sourceId>submit_order</sourceId>
+    <destinationId>pending_split</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_finalize_approved_approved</id>
+    <type>regular</type>
+    <sourceId>finalize_approved</sourceId>
+    <destinationId>approved</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_finalize_rejected_rejected</id>
+    <type>regular</type>
+    <sourceId>finalize_rejected</sourceId>
+    <destinationId>rejected</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_rejected_finalize_rejected</id>
+    <type>regular</type>
+    <sourceId>rejected</sourceId>
+    <destinationId>finalize_rejected</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>ev_case_create</id>
+      <actions phase="post">
+        <action id="6">
+<![CDATA[
+            order_description: f.order_description;
+            changeCaseProperty("title").about { order_description.value }
+            ]]>
+        </action>
+      </actions>
+    </event>
+    <event type="finish">
+      <id>ev_submit_order_post_split</id>
+      <actions phase="post">
+        <action id="7">
+<![CDATA[
+            async.run { assignTask("split_parallel_review"); finishTask("split_parallel_review") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
