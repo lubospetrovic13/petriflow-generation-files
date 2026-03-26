@@ -1,0 +1,751 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+
+  <id>leave_request</id>
+  <version>1.0.0</version>
+  <initials>LRQ</initials>
+  <title>Leave Request</title>
+  <icon>event_available</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+
+  <!-- ═══════════════════════════════════════════════
+       CASE EVENTS — phase="post" only (C1)
+  ════════════════════════════════════════════════ -->
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="1"><![CDATA[
+          status: f.status, emp_email: f.emp_email;
+          change status    value { "Draft — awaiting submission" }
+          change emp_email value { userService.loggedOrSystem.email }
+        ]]></action>
+      </actions>
+    </event>
+  </caseEvents>
+
+  <!-- ═══════════════════════════════════════════════
+       ROLES
+  ════════════════════════════════════════════════ -->
+  <role>
+    <id>employee</id>
+    <title>Employee</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>hr</id>
+    <title>HR Officer</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+
+  <!-- ═══════════════════════════════════════════════
+       DATA FIELDS
+  ════════════════════════════════════════════════ -->
+
+  <!-- Employee identity -->
+  <data type="text">
+    <id>emp_email</id>
+    <title>Employee Email</title>
+    <value></value>
+  </data>
+
+  <!-- Request fields -->
+  <data type="enumeration_map">
+    <id>leave_type</id>
+    <title>Leave Type</title>
+    <options>
+      <option key="annual">Annual Leave</option>
+      <option key="sick">Sick Leave</option>
+      <option key="personal">Personal Leave</option>
+    </options>
+  </data>
+
+  <data type="date">
+    <id>start_date</id>
+    <title>Start Date</title>
+  </data>
+
+  <data type="date">
+    <id>end_date</id>
+    <title>End Date</title>
+  </data>
+
+  <data type="text">
+    <id>reason</id>
+    <title>Reason</title>
+  </data>
+
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment (e.g. Medical Certificate)</title>
+  </data>
+
+  <!-- Review comments -->
+  <data type="text">
+    <id>manager_comment</id>
+    <title>Manager Comment</title>
+    <value></value>
+  </data>
+
+  <data type="text">
+    <id>hr_comment</id>
+    <title>HR Comment</title>
+    <value></value>
+  </data>
+
+  <!-- Status visible in detail view -->
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+    <value></value>
+  </data>
+
+  <!-- Routing number fields (C4 — set in phase="pre") -->
+  <data type="number">
+    <id>go_approve_mgr</id>
+    <title>Go Approve (Manager)</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject_mgr</id>
+    <title>Go Reject (Manager)</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_approve_hr</id>
+    <title>Go Approve (HR)</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject_hr</id>
+    <title>Go Reject (HR)</title>
+    <init>0</init>
+  </data>
+
+  <!-- Manager decision selector -->
+  <data type="enumeration_map">
+    <id>mgr_decision</id>
+    <title>Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+
+  <!-- HR decision selector -->
+  <data type="enumeration_map">
+    <id>hr_decision</id>
+    <title>Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+
+  <!-- ═══════════════════════════════════════════════
+       TRANSITIONS
+  ════════════════════════════════════════════════ -->
+
+  <!-- ── T1: Employee submits request ── -->
+  <transition>
+    <id>t_submit</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submit Leave Request</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Leave Request Details</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>1</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic><behavior>editable</behavior><behavior>optional</behavior></logic>
+        <layout><x>0</x><y>2</y><rows>2</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+        <component><name>textarea</name></component>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic><behavior>editable</behavior><behavior>optional</behavior></logic>
+        <layout><x>0</x><y>4</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>6</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_submit_finish</id>
+      <actions phase="pre">
+        <action id="2"><![CDATA[
+          status: f.status;
+          change status value { "Pending Manager Review" }
+        ]]></action>
+      </actions>
+    </event>
+  </transition>
+
+  <!-- ── T2: Manager reviews request ── -->
+  <transition>
+    <id>t_mgr_review</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>rate_review</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_mgr_review</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Leave Request</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>2</y><rows>2</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+        <component><name>textarea</name></component>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>4</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>mgr_decision</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>6</y><rows>2</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+        <component><name>textarea</name></component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_mgr_review_finish</id>
+      <actions phase="pre">
+        <action id="3"><![CDATA[
+          go_approve_mgr: f.go_approve_mgr, go_reject_mgr: f.go_reject_mgr,
+          mgr_decision: f.mgr_decision, status: f.status;
+          if (mgr_decision.value == "approve") {
+            change go_approve_mgr value { 1 }
+            change go_reject_mgr  value { 0 }
+            change status         value { "Manager Approved — Pending HR Review" }
+          } else {
+            change go_approve_mgr value { 0 }
+            change go_reject_mgr  value { 1 }
+            change status         value { "Rejected by Manager — Awaiting Correction" }
+          }
+        ]]></action>
+      </actions>
+      <actions phase="post">
+        <action id="4"><![CDATA[
+          mgr_decision: f.mgr_decision, emp_email: f.emp_email,
+          manager_comment: f.manager_comment, start_date: f.start_date, end_date: f.end_date;
+          if (mgr_decision.value == "reject") {
+            sendEmail(
+              [emp_email.value],
+              "Leave Request — Returned by Manager",
+              "Your leave request (${start_date.value} to ${end_date.value}) has been returned by your manager.\n\nComment: ${manager_comment.value}\n\nPlease log in to correct and resubmit your request."
+            )
+            async.run {
+              def t = findTask { it.transitionId.eq("t_notify_mgr_rej").and(it.caseId.eq(useCase.stringId)) }
+              if (t) { assignTask(t, userService.loggedOrSystem); finishTask(t, userService.loggedOrSystem) }
+            }
+          }
+        ]]></action>
+      </actions>
+    </event>
+  </transition>
+
+  <!-- ── T3: System bridge — manager rejection loop ── -->
+  <transition>
+    <id>t_notify_mgr_rej</id>
+    <x>784</x>
+    <y>400</y>
+    <label>Process Manager Rejection</label>
+    <roleRef>
+      <id>system</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+  </transition>
+
+  <!-- ── T4: HR reviews request ── -->
+  <transition>
+    <id>t_hr_review</id>
+    <x>976</x>
+    <y>208</y>
+    <label>HR Final Approval</label>
+    <icon>admin_panel_settings</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>hr</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_hr_review</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>HR Verification</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>2</y><rows>2</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+        <component><name>textarea</name></component>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>4</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+        <component><name>textarea</name></component>
+      </dataRef>
+      <dataRef>
+        <id>hr_decision</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>6</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>7</y><rows>2</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+        <component><name>textarea</name></component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_hr_review_finish</id>
+      <actions phase="pre">
+        <action id="5"><![CDATA[
+          go_approve_hr: f.go_approve_hr, go_reject_hr: f.go_reject_hr,
+          hr_decision: f.hr_decision, status: f.status;
+          if (hr_decision.value == "approve") {
+            change go_approve_hr value { 1 }
+            change go_reject_hr  value { 0 }
+            change status        value { "Fully Approved by HR" }
+          } else {
+            change go_approve_hr value { 0 }
+            change go_reject_hr  value { 1 }
+            change status        value { "Rejected by HR — Awaiting Correction" }
+          }
+        ]]></action>
+      </actions>
+      <actions phase="post">
+        <action id="6"><![CDATA[
+          hr_decision: f.hr_decision, emp_email: f.emp_email,
+          hr_comment: f.hr_comment, start_date: f.start_date, end_date: f.end_date;
+          if (hr_decision.value == "approve") {
+            sendEmail(
+              [emp_email.value],
+              "Leave Request Approved",
+              "Congratulations! Your leave request has been fully approved.\n\nDates: ${start_date.value} to ${end_date.value}\n\nHR Comment: ${hr_comment.value}\n\nEnjoy your leave!"
+            )
+          } else {
+            sendEmail(
+              [emp_email.value],
+              "Leave Request — Returned by HR",
+              "Your leave request (${start_date.value} to ${end_date.value}) has been returned by HR.\n\nComment: ${hr_comment.value}\n\nPlease log in to correct and resubmit your request."
+            )
+            async.run {
+              def t = findTask { it.transitionId.eq("t_notify_hr_rej").and(it.caseId.eq(useCase.stringId)) }
+              if (t) { assignTask(t, userService.loggedOrSystem); finishTask(t, userService.loggedOrSystem) }
+            }
+          }
+        ]]></action>
+      </actions>
+    </event>
+  </transition>
+
+  <!-- ── T5: System bridge — HR rejection loop ── -->
+  <transition>
+    <id>t_notify_hr_rej</id>
+    <x>1168</x>
+    <y>400</y>
+    <label>Process HR Rejection</label>
+    <roleRef>
+      <id>system</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+  </transition>
+
+  <!-- ── T6: System — confirmation (HR approval path ends here) ── -->
+  <transition>
+    <id>t_approved_end</id>
+    <x>1360</x>
+    <y>208</y>
+    <label>Approved — Close</label>
+    <roleRef>
+      <id>system</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+  </transition>
+
+  <!-- ── T7: Detail view — persistent status for employee (read arc, Y=16) ── -->
+  <transition>
+    <id>t_detail_view</id>
+    <x>592</x>
+    <y>16</y>
+    <label>My Leave Request Status</label>
+    <icon>info</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_detail</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Request Status</title>
+      <dataRef>
+        <id>status</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>leave_type</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>2</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>2</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>3</y><rows>2</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+        <component><name>textarea</name></component>
+      </dataRef>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>2</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+        <component><name>textarea</name></component>
+      </dataRef>
+    </dataGroup>
+  </transition>
+
+  <!-- ═══════════════════════════════════════════════
+       PLACES
+  ════════════════════════════════════════════════ -->
+
+  <!-- Main flow start — token lives here initially -->
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- After submission, before manager review -->
+  <place>
+    <id>p_submitted</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Pending Manager Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- Manager approved — token heads to HR -->
+  <place>
+    <id>p_mgr_approved</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Manager Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- Manager rejected — intermediate before loop -->
+  <place>
+    <id>p_mgr_rejected</id>
+    <x>784</x>
+    <y>592</y>
+    <label>Manager Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- HR approved — intermediate before close -->
+  <place>
+    <id>p_hr_approved</id>
+    <x>1168</x>
+    <y>208</y>
+    <label>HR Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- HR rejected — intermediate before loop -->
+  <place>
+    <id>p_hr_rejected</id>
+    <x>1168</x>
+    <y>592</y>
+    <label>HR Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- Final done place -->
+  <place>
+    <id>p_done</id>
+    <x>1552</x>
+    <y>208</y>
+    <label>Approved & Closed</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- Detail view place — permanently holds token, read arc keeps detail task always enabled -->
+  <place>
+    <id>p_detail</id>
+    <x>400</x>
+    <y>16</y>
+    <label>Detail</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- ═══════════════════════════════════════════════
+       ARCS
+  ════════════════════════════════════════════════ -->
+
+  <!-- start → t_submit -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>t_submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- t_submit → p_submitted (main flow) -->
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_submitted</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- t_submit → p_detail (deposit detail token on first submission) -->
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- p_detail → t_detail_view (read — never consumes) -->
+  <arc>
+    <id>a4</id>
+    <type>read</type>
+    <sourceId>p_detail</sourceId>
+    <destinationId>t_detail_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- p_submitted → t_mgr_review -->
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_submitted</sourceId>
+    <destinationId>t_mgr_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- t_mgr_review → p_mgr_approved (variable arc — fires when go_approve_mgr=1) -->
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>t_mgr_review</sourceId>
+    <destinationId>p_mgr_approved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approve_mgr</reference>
+  </arc>
+
+  <!-- t_mgr_review → p_mgr_rejected (variable arc — fires when go_reject_mgr=1) -->
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>t_mgr_review</sourceId>
+    <destinationId>p_mgr_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject_mgr</reference>
+  </arc>
+
+  <!-- p_mgr_rejected → t_notify_mgr_rej -->
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>p_mgr_rejected</sourceId>
+    <destinationId>t_notify_mgr_rej</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- t_notify_mgr_rej → start (loop back to employee) -->
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>t_notify_mgr_rej</sourceId>
+    <destinationId>start</destinationId>
+    <multiplicity>1</multiplicity>
+    <breakpoint><x>784</x><y>720</y></breakpoint>
+    <breakpoint><x>16</x><y>720</y></breakpoint>
+  </arc>
+
+  <!-- p_mgr_approved → t_hr_review -->
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>p_mgr_approved</sourceId>
+    <destinationId>t_hr_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- t_hr_review → p_hr_approved (variable arc — fires when go_approve_hr=1) -->
+  <arc>
+    <id>a11</id>
+    <type>regular</type>
+    <sourceId>t_hr_review</sourceId>
+    <destinationId>p_hr_approved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approve_hr</reference>
+  </arc>
+
+  <!-- t_hr_review → p_hr_rejected (variable arc — fires when go_reject_hr=1) -->
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>t_hr_review</sourceId>
+    <destinationId>p_hr_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject_hr</reference>
+  </arc>
+
+  <!-- p_hr_rejected → t_notify_hr_rej -->
+  <arc>
+    <id>a13</id>
+    <type>regular</type>
+    <sourceId>p_hr_rejected</sourceId>
+    <destinationId>t_notify_hr_rej</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- t_notify_hr_rej → start (loop back to employee) -->
+  <arc>
+    <id>a14</id>
+    <type>regular</type>
+    <sourceId>t_notify_hr_rej</sourceId>
+    <destinationId>start</destinationId>
+    <multiplicity>1</multiplicity>
+    <breakpoint><x>1168</x><y>800</y></breakpoint>
+    <breakpoint><x>16</x><y>800</y></breakpoint>
+  </arc>
+
+  <!-- p_hr_approved → t_approved_end -->
+  <arc>
+    <id>a15</id>
+    <type>regular</type>
+    <sourceId>p_hr_approved</sourceId>
+    <destinationId>t_approved_end</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+  <!-- t_approved_end → p_done -->
+  <arc>
+    <id>a16</id>
+    <type>regular</type>
+    <sourceId>t_approved_end</sourceId>
+    <destinationId>p_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+</document>
