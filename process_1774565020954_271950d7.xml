@@ -1,0 +1,886 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>doc_pipeline</id>
+  <version>1.0.0</version>
+  <initials>DPP</initials>
+  <title>Document Processing Pipeline</title>
+  <icon>description</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>true</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run { assignTask("t_process"); finishTask("t_process") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>reviewer</id>
+    <title>Reviewer</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="file">
+    <id>document_file</id>
+    <title>Document</title>
+  </data>
+  <data type="text">
+    <id>submitter_name</id>
+    <title>Your Name</title>
+  </data>
+  <data type="text">
+    <id>submitter_email</id>
+    <title>Your Email</title>
+  </data>
+  <data type="text">
+    <id>document_description</id>
+    <title>Description</title>
+  </data>
+  <data type="enumeration_map">
+    <id>document_type</id>
+    <title>Document Type</title>
+    <options>
+      <option key="invoice">Invoice</option>
+      <option key="contract">Contract</option>
+      <option key="report">Report</option>
+      <option key="other">Other</option>
+    </options>
+  </data>
+  <data type="enumeration_map">
+    <id>status</id>
+    <title>Status</title>
+    <options>
+      <option key="submitted">Submitted</option>
+      <option key="processing">Processing</option>
+      <option key="pending_review">Pending Review</option>
+      <option key="approved">Approved</option>
+      <option key="rejected">Rejected</option>
+      <option key="escalated">Escalated</option>
+    </options>
+    <init>submitted</init>
+  </data>
+  <data type="text">
+    <id>rejection_reason</id>
+    <title>Rejection Reason</title>
+  </data>
+  <data type="text">
+    <id>reviewer_notes</id>
+    <title>Reviewer Notes</title>
+  </data>
+  <data type="enumeration_map">
+    <id>decision</id>
+    <title>Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>go_approve</id>
+    <title>Go Approve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject</id>
+    <title>Go Reject</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reviewed</id>
+    <title>Go Reviewed</title>
+    <init>0</init>
+  </data>
+  <data type="dateTime">
+    <id>submitted_at</id>
+    <title>Submitted At</title>
+  </data>
+  <data type="dateTime">
+    <id>reviewed_at</id>
+    <title>Reviewed At</title>
+  </data>
+  <data type="text">
+    <id>reviewed_by</id>
+    <title>Reviewed By</title>
+  </data>
+  <!-- SUBMIT TASK (anonymous) -->
+  <transition>
+    <id>t_submit</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submit Document</label>
+    <icon>upload_file</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>anonymous</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Document Submission</title>
+      <dataRef>
+        <id>submitter_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>submitter_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_type</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_file</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_submit_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status, submitted_at: f.submitted_at;
+            change status value { "processing" }
+            change submitted_at value { java.time.LocalDateTime.now() }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            submitter_email: f.submitter_email, submitter_name: f.submitter_name;
+            sendEmail([submitter_email.value], "Document Received", "Dear ${submitter_name.value},\n\nYour document has been received and is being processed.\n\nThank you.")
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- SYSTEM PROCESSING TASK -->
+  <transition>
+    <id>t_process</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Process Document</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>t_process_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            status: f.status;
+            change status value { "pending_review" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- REVIEW TASK (human) -->
+  <transition>
+    <id>t_review</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Review Document</label>
+    <icon>rate_review</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>reviewer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_review</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review</title>
+      <dataRef>
+        <id>submitter_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>submitter_email</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <event type="set">
+          <id>decision_set</id>
+          <actions phase="post">
+            <action id="5">
+<![CDATA[
+                t_review: t.t_review, decision: f.decision, rejection_reason: f.rejection_reason;
+                if (decision.value == "reject") {
+                make rejection_reason, editable on t_review when { true }
+                make rejection_reason, required on t_review when { true }
+                } else {
+                make rejection_reason, hidden on t_review when { true }
+                make rejection_reason, optional on t_review when { true }
+                }
+                ]]>
+            </action>
+          </actions>
+        </event>
+      </dataRef>
+      <dataRef>
+        <id>rejection_reason</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reviewer_notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_review_finish</id>
+      <actions phase="pre">
+        <action id="6">
+<![CDATA[
+            go_approve: f.go_approve, go_reject: f.go_reject,
+            go_reviewed: f.go_reviewed, decision: f.decision,
+            status: f.status, reviewed_by: f.reviewed_by, reviewed_at: f.reviewed_at;
+            change go_reviewed value { 1 }
+            change reviewed_by value { userService.loggedOrSystem.email }
+            change reviewed_at value { java.time.LocalDateTime.now() }
+            if (decision.value == "approve") {
+            change go_approve value { 1 }
+            change go_reject value { 0 }
+            change status value { "approved" }
+            } else {
+            change go_approve value { 0 }
+            change go_reject value { 1 }
+            change status value { "rejected" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="7">
+<![CDATA[
+            submitter_email: f.submitter_email, submitter_name: f.submitter_name,
+            decision: f.decision, rejection_reason: f.rejection_reason, reviewer_notes: f.reviewer_notes;
+            if (decision.value == "approve") {
+            sendEmail([submitter_email.value], "Document Approved", "Dear ${submitter_name.value},\n\nYour document has been approved.\n\nNotes: ${reviewer_notes.value ?: 'None'}")
+            } else {
+            sendEmail([submitter_email.value], "Document Rejected", "Dear ${submitter_name.value},\n\nYour document has been rejected.\n\nReason: ${rejection_reason.value}\n\nNotes: ${reviewer_notes.value ?: 'None'}")
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- SLA TIMER — fires 24h after token arrives in p_review -->
+  <transition>
+    <id>t_sla</id>
+    <x>688</x>
+    <y>400</y>
+    <label>SLA Check</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <trigger type="time">
+      <delay>PT24H</delay>
+    </trigger>
+    <event type="finish">
+      <id>t_sla_finish</id>
+      <actions phase="pre">
+        <action id="8">
+<![CDATA[
+            status: f.status, go_reviewed: f.go_reviewed;
+            if ((go_reviewed.value as Integer) == 0) {
+            change status value { "escalated" }
+            changeCaseProperty("color").about { "red" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="9">
+<![CDATA[
+            go_reviewed: f.go_reviewed, submitter_name: f.submitter_name,
+            document_type: f.document_type;
+            if ((go_reviewed.value as Integer) == 0) {
+            sendEmail(["manager@company.com"], "SLA Breach - Document Review Overdue",
+            "A document submitted by ${submitter_name.value} (type: ${document_type.value}) has not been reviewed within 24 hours and requires immediate attention.")
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- APPROVED TASK (final state) -->
+  <transition>
+    <id>t_approved</id>
+    <x>976</x>
+    <y>112</y>
+    <label>Approved</label>
+    <icon>check_circle</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_approved</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Approved Document</title>
+      <dataRef>
+        <id>submitter_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reviewed_by</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reviewed_at</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- REJECTED TASK (final state) -->
+  <transition>
+    <id>t_rejected</id>
+    <x>976</x>
+    <y>304</y>
+    <label>Rejected</label>
+    <icon>cancel</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_rejected</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Rejected Document</title>
+      <dataRef>
+        <id>submitter_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>rejection_reason</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- STATUS VIEW TASK (read arc — always visible to submitter) -->
+  <transition>
+    <id>t_status</id>
+    <x>400</x>
+    <y>16</y>
+    <label>Track Status</label>
+    <icon>info</icon>
+    <priority>2</priority>
+    <roleRef>
+      <id>anonymous</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Submission Status</title>
+      <dataRef>
+        <id>submitter_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>document_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>submitted_at</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_processing</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Processing</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_review</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Pending Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_approved</id>
+    <x>880</x>
+    <y>112</y>
+    <label>Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>880</x>
+    <y>304</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>208</x>
+    <y>16</y>
+    <label>Status</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <!-- Submit flow -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>t_submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_processing</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Processing -->
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>p_processing</sourceId>
+    <destinationId>t_process</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>t_process</sourceId>
+    <destinationId>p_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Review — SLA timer shares same input place -->
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>p_review</sourceId>
+    <destinationId>t_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>read</type>
+    <sourceId>p_review</sourceId>
+    <destinationId>t_sla</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Review decision — variable arcs -->
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>t_review</sourceId>
+    <destinationId>p_approved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approve</reference>
+  </arc>
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>t_review</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject</reference>
+  </arc>
+  <!-- SLA escalation — goes to escalated place (dead end, manager notified by email) -->
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>t_sla</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Final states -->
+  <arc>
+    <id>a11</id>
+    <type>regular</type>
+    <sourceId>p_approved</sourceId>
+    <destinationId>t_approved</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>p_rejected</sourceId>
+    <destinationId>t_rejected</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Status view — read arc keeps token alive -->
+  <arc>
+    <id>a13</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>t_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
