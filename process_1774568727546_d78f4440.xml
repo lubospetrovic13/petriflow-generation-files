@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>public_complaint</id>
+  <version>1.0.0</version>
+  <initials>PC</initials>
+  <title>Public Complaint Submission</title>
+  <icon>report_problem</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>true</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            reference: f.reference;
+            // Set reference to case stringId
+            change reference value { useCase.stringId }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>officer</id>
+    <title>Complaints Officer</title>
+  </role>
+  <!-- Data fields -->
+  <data type="text">
+    <id>reference</id>
+    <title>Reference Number</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>citizen_name</id>
+    <title>Your Name</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>citizen_email</id>
+    <title>Your Email</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>citizen_phone</id>
+    <title>Your Phone Number</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>description</id>
+    <title>Description</title>
+    <init/>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment</title>
+    <init/>
+    <component>
+      <name>preview</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+    <init>Submitted</init>
+  </data>
+  <data type="text">
+    <id>officer_notes</id>
+    <title>Internal Notes</title>
+    <init/>
+  </data>
+  <data type="enumeration_map">
+    <id>priority</id>
+    <title>Priority</title>
+    <options>
+      <option key="low">Low</option>
+      <option key="medium">Medium</option>
+      <option key="high">High</option>
+    </options>
+    <init>medium</init>
+  </data>
+  <data type="text">
+    <id>officer_response</id>
+    <title>Officer Response</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>rejection_reason</id>
+    <title>Rejection Reason</title>
+    <init/>
+  </data>
+  <data type="number">
+    <id>go_resolve</id>
+    <title>Go Resolve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject</id>
+    <title>Go Reject</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_moreinfo</id>
+    <title>Go More Info</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_review</id>
+    <title>Go Review</title>
+    <init>0</init>
+  </data>
+  <data type="text">
+    <id>moreinfo_request</id>
+    <title>Additional Information Requested</title>
+    <init/>
+  </data>
+  <!-- Transitions -->
+  <!-- Citizen submits complaint -->
+  <transition>
+    <id>submit_complaint</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Complaint</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>anonymous</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>citizen_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Complaint Details</title>
+      <dataRef>
+        <id>citizen_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>citizen_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>citizen_phone</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status;
+            change status value { "Submitted" }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            citizen_email: f.citizen_email, reference: f.reference, subject: f.subject;
+            sendEmail([citizen_email.value],
+            "Complaint Received: Reference ${reference.value}",
+            "Thank you for your submission. Your reference number is ${reference.value}. Subject: ${subject.value}. You can track your complaint status at: https://YOUR-STATUS-URL/${reference.value}")
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Officer reviews complaint -->
+  <transition>
+    <id>review_complaint</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Review Complaint</label>
+    <icon>assignment</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>officer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>officer_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Officer Review</title>
+      <dataRef>
+        <id>citizen_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>citizen_email</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>citizen_phone</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>priority</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>7</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>officer_notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>8</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>officer_response</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>10</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>rejection_reason</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>12</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>moreinfo_request</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>14</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>review_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            go_resolve: f.go_resolve, go_reject: f.go_reject, go_moreinfo: f.go_moreinfo, officer_response: f.officer_response, rejection_reason: f.rejection_reason, moreinfo_request: f.moreinfo_request, status: f.status;
+            // Officer must fill one of: officer_response (resolve), rejection_reason (reject), or moreinfo_request (request info)
+            if ((officer_response.value ?: "").trim()) {
+            change go_resolve value { 1 }; change go_reject value { 0 }; change go_moreinfo value { 0 };
+            change status value { "Resolved" }
+            } else if ((rejection_reason.value ?: "").trim()) {
+            change go_resolve value { 0 }; change go_reject value { 1 }; change go_moreinfo value { 0 };
+            change status value { "Rejected" }
+            } else if ((moreinfo_request.value ?: "").trim()) {
+            change go_resolve value { 0 }; change go_reject value { 0 }; change go_moreinfo value { 1 };
+            change status value { "More Info Requested" }
+            } else {
+            throw new java.lang.IllegalStateException("Please provide a response, rejection reason, or request additional information.")
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="5">
+<![CDATA[
+            citizen_email: f.citizen_email, officer_response: f.officer_response, rejection_reason: f.rejection_reason, moreinfo_request: f.moreinfo_request, reference: f.reference, status: f.status;
+            if ((officer_response.value ?: "").trim()) {
+            sendEmail([citizen_email.value],
+            "Complaint Resolved: Reference ${reference.value}",
+            "Your complaint has been resolved. Response: ${officer_response.value}")
+            } else if ((rejection_reason.value ?: "").trim()) {
+            sendEmail([citizen_email.value],
+            "Complaint Rejected: Reference ${reference.value}",
+            "Your complaint was rejected. Reason: ${rejection_reason.value}")
+            } else if ((moreinfo_request.value ?: "").trim()) {
+            sendEmail([citizen_email.value],
+            "Additional Information Requested: Reference ${reference.value}",
+            "The officer has requested more information: ${moreinfo_request.value}. Please update your complaint at: https://YOUR-STATUS-URL/${reference.value}")
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Citizen provides more info -->
+  <transition>
+    <id>provide_moreinfo</id>
+    <x>496</x>
+    <y>400</y>
+    <label>Provide More Info</label>
+    <icon>edit_note</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>anonymous</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>moreinfo_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Provide Additional Information</title>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>moreinfo_finish</id>
+      <actions phase="pre">
+        <action id="6">
+<![CDATA[
+            go_review: f.go_review, status: f.status;
+            change go_review value { 1 };
+            change status value { "Resubmitted" }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="7">
+<![CDATA[
+            citizen_email: f.citizen_email, reference: f.reference;
+            sendEmail([citizen_email.value],
+            "Additional Information Submitted: Reference ${reference.value}",
+            "Thank you for providing additional information. Your complaint will be reviewed again.")
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Citizen status view (persistent) -->
+  <transition>
+    <id>status_view</id>
+    <x>304</x>
+    <y>16</y>
+    <label>Status View</label>
+    <icon>visibility</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>anonymous</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>status_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Complaint Status</title>
+      <dataRef>
+        <id>reference</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>officer_response</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>rejection_reason</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>8</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>moreinfo_request</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>10</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- Places -->
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_submitted</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submitted</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_review</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Under Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_resolved</id>
+    <x>592</x>
+    <y>112</y>
+    <label>Resolved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_moreinfo</id>
+    <x>592</x>
+    <y>400</y>
+    <label>More Info Requested</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_citizen_moreinfo</id>
+    <x>784</x>
+    <y>400</y>
+    <label>Citizen More Info</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_detail</id>
+    <x>208</x>
+    <y>16</y>
+    <label>Status Detail</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- Arcs -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit_complaint</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_complaint</sourceId>
+    <destinationId>p_submitted</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_submitted</sourceId>
+    <destinationId>review_complaint</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Review outcome variable arcs -->
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>review_complaint</sourceId>
+    <destinationId>p_resolved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_resolve</reference>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>review_complaint</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject</reference>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>review_complaint</sourceId>
+    <destinationId>p_moreinfo</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_moreinfo</reference>
+  </arc>
+  <!-- Officer requests more info, citizen provides -->
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>p_moreinfo</sourceId>
+    <destinationId>provide_moreinfo</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>provide_moreinfo</sourceId>
+    <destinationId>p_citizen_moreinfo</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>p_citizen_moreinfo</sourceId>
+    <destinationId>review_complaint</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_review</reference>
+  </arc>
+  <!-- Status view (persistent) -->
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>submit_complaint</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a11</id>
+    <type>read</type>
+    <sourceId>p_detail</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>provide_moreinfo</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a13</id>
+    <type>regular</type>
+    <sourceId>review_complaint</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a14</id>
+    <type>regular</type>
+    <sourceId>p_resolved</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a15</id>
+    <type>regular</type>
+    <sourceId>p_rejected</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
