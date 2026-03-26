@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>bug_report_lifecycle</id>
+  <version>1.0.0</version>
+  <initials>BRL</initials>
+  <title>Bug Report Lifecycle</title>
+  <icon>bug_report</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ROLES (alphabetically) -->
+  <role>
+    <id>developer</id>
+    <title>Developer</title>
+  </role>
+  <role>
+    <id>qa</id>
+    <title>QA</title>
+  </role>
+  <role>
+    <id>reporter</id>
+    <title>Reporter</title>
+  </role>
+  <role>
+    <id>triage</id>
+    <title>Triage</title>
+  </role>
+  <!-- DATA FIELDS (alphabetically) -->
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment</title>
+    <component>
+      <name>preview</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>description</id>
+    <title>Description</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>resolution</id>
+    <title>Resolution</title>
+  </data>
+  <data type="enumeration_map">
+    <id>severity</id>
+    <title>Severity</title>
+    <options>
+      <option key="low">Low</option>
+      <option key="medium">Medium</option>
+      <option key="high">High</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+  </data>
+  <data type="text">
+    <id>title</id>
+    <title>Title</title>
+  </data>
+  <!-- TRANSITIONS (alphabetically) -->
+  <transition>
+    <id>developer_fix</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Fix Bug</label>
+    <icon>build</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>developer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>developer_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Developer Fix</title>
+      <dataRef>
+        <id>resolution</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_dev_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            status: f.status;
+            change status value { "Resolved - Awaiting Verification" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>qa_verify</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Verify Fix</label>
+    <icon>check_circle</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>qa</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>qa_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>QA Verification</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>resolution</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>qa_fail</id>
+    <x>1072</x>
+    <y>304</y>
+    <label>Verification Failed</label>
+    <icon>error</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>qa</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>qa_fail_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>QA Fail</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_qa_fail_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status;
+            change status value { "Verification Failed - Needs Rework" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>qa_pass</id>
+    <x>1072</x>
+    <y>112</y>
+    <label>Verification Passed</label>
+    <icon>done_all</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>qa</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>qa_pass_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>QA Pass</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_qa_pass_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            status: f.status;
+            change status value { "Closed - Verified" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>report_bug</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Report Bug</label>
+    <icon>bug_report</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>reporter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>report_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Bug Report</title>
+      <dataRef>
+        <id>title</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>severity</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_report_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            status: f.status;
+            change status value { "New" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>triage_review</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Triage</label>
+    <icon>assignment_ind</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>triage</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>triage_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Triage</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>severity</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>triage_reject</id>
+    <x>496</x>
+    <y>48</y>
+    <label>Reject Bug</label>
+    <icon>block</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>triage</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>triage_reject_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Reject Bug</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_triage_reject_finish</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status;
+            change status value { "Rejected" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- PLACES (alphabetically) -->
+  <place>
+    <id>done</id>
+    <x>1264</x>
+    <y>112</y>
+    <label>Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p0</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Reported</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p1</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Triage Complete</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_dev</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Assigned to Developer</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_qa</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Ready for QA</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>688</x>
+    <y>48</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS (alphabetically) -->
+  <arc>
+    <id>arc_dev_pqa</id>
+    <type>regular</type>
+    <sourceId>developer_fix</sourceId>
+    <destinationId>p_qa</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_p0_report</id>
+    <type>regular</type>
+    <sourceId>p0</sourceId>
+    <destinationId>report_bug</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_p1_triage</id>
+    <type>regular</type>
+    <sourceId>p1</sourceId>
+    <destinationId>developer_fix</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_p_qa_qaverify</id>
+    <type>regular</type>
+    <sourceId>p_qa</sourceId>
+    <destinationId>qa_verify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_p_rejected_done</id>
+    <type>regular</type>
+    <sourceId>p_rejected</sourceId>
+    <destinationId>done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_p1_triagereview</id>
+    <type>regular</type>
+    <sourceId>p1</sourceId>
+    <destinationId>triage_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_qa_verify_qapass</id>
+    <type>regular</type>
+    <sourceId>qa_verify</sourceId>
+    <destinationId>qa_pass</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_qa_verify_qafail</id>
+    <type>regular</type>
+    <sourceId>qa_verify</sourceId>
+    <destinationId>qa_fail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_qafail_pdev</id>
+    <type>regular</type>
+    <sourceId>qa_fail</sourceId>
+    <destinationId>p_dev</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_qapass_done</id>
+    <type>regular</type>
+    <sourceId>qa_pass</sourceId>
+    <destinationId>done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_report_p1</id>
+    <type>regular</type>
+    <sourceId>report_bug</sourceId>
+    <destinationId>p1</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_triage_pdev</id>
+    <type>regular</type>
+    <sourceId>triage_review</sourceId>
+    <destinationId>p_dev</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_triage_reject_prejected</id>
+    <type>regular</type>
+    <sourceId>triage_reject</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_p1_triagereject</id>
+    <type>regular</type>
+    <sourceId>p1</sourceId>
+    <destinationId>triage_reject</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_pdev_developer</id>
+    <type>regular</type>
+    <sourceId>p_dev</sourceId>
+    <destinationId>developer_fix</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- CASE EVENTS -->
+  <caseEvents>
+    <event type="create">
+      <id>on_case_create</id>
+      <actions phase="post">
+        <action id="6">
+<![CDATA[
+            status: f.status;
+            change status value { "New" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+</document>
