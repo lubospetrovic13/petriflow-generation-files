@@ -1,0 +1,944 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>leave_request</id>
+  <version>1.0.0</version>
+  <initials>LRQ</initials>
+  <title>Leave Request</title>
+  <icon>event_available</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <!-- ==================== ROLES ==================== -->
+  <role>
+    <id>employee</id>
+    <title>Employee</title>
+  </role>
+  <role>
+    <id>hr</id>
+    <title>HR Officer</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- ==================== DATA ==================== -->
+  <data type="number">
+    <id>days_count</id>
+    <title>Days Requested</title>
+    <init>0</init>
+  </data>
+  <data type="text">
+    <id>employee_email</id>
+    <title>Employee Email</title>
+  </data>
+  <data type="date">
+    <id>end_date</id>
+    <title>End Date</title>
+  </data>
+  <data type="text">
+    <id>hr_comment</id>
+    <title>HR Comment</title>
+  </data>
+  <data type="number">
+    <id>hr_reject</id>
+    <title>HR Reject Flag</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>leave_balance</id>
+    <title>Leave Balance (Days)</title>
+    <init>0</init>
+  </data>
+  <data type="enumeration_map">
+    <id>leave_type</id>
+    <title>Leave Type</title>
+    <options>
+      <option key="annual">Annual Leave</option>
+      <option key="personal">Personal Leave</option>
+      <option key="sick">Sick Leave</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>manager_comment</id>
+    <title>Manager Comment</title>
+  </data>
+  <data type="enumeration_map">
+    <id>manager_decision</id>
+    <title>Manager Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>manager_reject</id>
+    <title>Manager Reject Flag</title>
+    <init>0</init>
+  </data>
+  <data type="fileList">
+    <id>medical_certificate</id>
+    <title>Medical Certificate (if applicable)</title>
+  </data>
+  <data type="text">
+    <id>reason</id>
+    <title>Reason</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="number">
+    <id>revision_count</id>
+    <title>Revision Count</title>
+    <init>0</init>
+  </data>
+  <data type="date">
+    <id>start_date</id>
+    <title>Start Date</title>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+    <init>Draft</init>
+  </data>
+  <data type="number">
+    <id>to_approved</id>
+    <title>To Approved Flag</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_hr_review</id>
+    <title>To HR Review Flag</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>to_resubmit</id>
+    <title>To Resubmit Flag</title>
+    <init>0</init>
+  </data>
+  <!-- ==================== TRANSITIONS ==================== -->
+  <transition>
+    <id>detail_view</id>
+    <x>304</x>
+    <y>16</y>
+    <label>Status View</label>
+    <icon>visibility</icon>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>detail_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Request Status</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>days_count</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>revision_count</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>hr_review</id>
+    <x>1168</x>
+    <y>208</y>
+    <label>HR Review</label>
+    <icon>fact_check</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>hr</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>hr_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>HR Review</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>days_count</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>medical_certificate</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>leave_balance</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>7</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_hr_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            to_approved: f.to_approved,
+            to_resubmit: f.to_resubmit,
+            manager_decision: f.manager_decision,
+            status: f.status,
+            hr_reject: f.hr_reject;
+            if (manager_decision.value == "approve") {
+            change to_approved value { 1 }
+            change to_resubmit value { 0 }
+            change hr_reject value { 0 }
+            change status value { "HR Approved" }
+            } else {
+            change to_approved value { 0 }
+            change to_resubmit value { 1 }
+            change hr_reject value { 1 }
+            change status value { "Rejected by HR" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="2">
+<![CDATA[
+            employee_email: f.employee_email,
+            manager_decision: f.manager_decision,
+            start_date: f.start_date,
+            end_date: f.end_date,
+            hr_comment: f.hr_comment,
+            revision_count: f.revision_count,
+            hr_reject: f.hr_reject;
+            if (manager_decision.value == "approve") {
+            def startStr = start_date.value?.format(java.time.format.DateTimeFormatter.ofPattern('dd/MM/yyyy')) ?: ""
+            def endStr = end_date.value?.format(java.time.format.DateTimeFormatter.ofPattern('dd/MM/yyyy')) ?: ""
+            sendEmail(
+            [employee_email.value],
+            "Leave Request Approved - ${useCase.title}",
+            "Your leave request has been approved by HR.\n\nDates: ${startStr} - ${endStr}\n\nHR Comment: ${hr_comment.value}"
+            )
+            } else {
+            if (hr_reject.value == 1) {
+            def current = (revision_count.value as Integer) ?: 0
+            change revision_count value { (current + 1) as Double }
+            sendEmail(
+            [employee_email.value],
+            "Leave Request Rejected by HR - ${useCase.title}",
+            "Your leave request has been rejected by HR. Please review the comments and resubmit.\n\nHR Comment: ${hr_comment.value}"
+            )
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>manager_review</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>rate_review</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>manager_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Manager Review</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>days_count</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>medical_certificate</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_manager_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            to_hr_review: f.to_hr_review,
+            to_resubmit: f.to_resubmit,
+            manager_decision: f.manager_decision,
+            status: f.status,
+            manager_reject: f.manager_reject;
+            if (manager_decision.value == "approve") {
+            change to_hr_review value { 1 }
+            change to_resubmit value { 0 }
+            change manager_reject value { 0 }
+            change status value { "Pending HR Review" }
+            } else {
+            change to_hr_review value { 0 }
+            change to_resubmit value { 1 }
+            change manager_reject value { 1 }
+            change status value { "Rejected by Manager" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="4">
+<![CDATA[
+            employee_email: f.employee_email,
+            manager_decision: f.manager_decision,
+            manager_comment: f.manager_comment,
+            revision_count: f.revision_count,
+            manager_reject: f.manager_reject;
+            if (manager_decision.value == "reject" && manager_reject.value == 1) {
+            def current = (revision_count.value as Integer) ?: 0
+            change revision_count value { (current + 1) as Double }
+            sendEmail(
+            [employee_email.value],
+            "Leave Request Rejected - ${useCase.title}",
+            "Your leave request has been rejected by your manager. Please review the comments and resubmit.\n\nManager Comment: ${manager_comment.value}"
+            )
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>submit_request</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Submit Request</label>
+    <icon>send</icon>
+    <priority>1</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>submit_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Leave Request</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>medical_certificate</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>on_submit_finish</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status,
+            employee_email: f.employee_email,
+            start_date: f.start_date,
+            end_date: f.end_date,
+            days_count: f.days_count;
+            change status value { "Pending Manager Review" }
+            change employee_email value { userService.loggedOrSystem.email }
+            if (start_date.value != null && end_date.value != null) {
+            def daysDiff = java.time.temporal.ChronoUnit.DAYS.between(
+            start_date.value as java.time.LocalDate,
+            end_date.value as java.time.LocalDate
+            )
+            change days_count value { (daysDiff + 1) as java.lang.Double }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- ==================== PLACES ==================== -->
+  <place>
+    <id>after_hr_review</id>
+    <x>1360</x>
+    <y>208</y>
+    <label>After HR Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>after_manager_review</id>
+    <x>880</x>
+    <y>208</y>
+    <label>After Manager Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>approved</id>
+    <x>1648</x>
+    <y>208</y>
+    <label>Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_detail</id>
+    <x>112</x>
+    <y>16</y>
+    <label>Detail View</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>pending_hr</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Pending HR</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>pending_manager</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Pending Manager</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>resubmit</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Resubmit</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <!-- ==================== ARCS ==================== -->
+  <arc>
+    <id>arc_after_hr_approve</id>
+    <type>regular</type>
+    <sourceId>after_hr_review</sourceId>
+    <destinationId>approved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_approved</reference>
+  </arc>
+  <arc>
+    <id>arc_after_hr_resubmit</id>
+    <type>regular</type>
+    <sourceId>after_hr_review</sourceId>
+    <destinationId>resubmit</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_resubmit</reference>
+  </arc>
+  <arc>
+    <id>arc_after_mgr_hr</id>
+    <type>regular</type>
+    <sourceId>after_manager_review</sourceId>
+    <destinationId>pending_hr</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_hr_review</reference>
+  </arc>
+  <arc>
+    <id>arc_after_mgr_resubmit</id>
+    <type>regular</type>
+    <sourceId>after_manager_review</sourceId>
+    <destinationId>resubmit</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>to_resubmit</reference>
+  </arc>
+  <arc>
+    <id>arc_detail_read</id>
+    <type>read</type>
+    <sourceId>p_detail</sourceId>
+    <destinationId>detail_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_hr_after_hr</id>
+    <type>regular</type>
+    <sourceId>hr_review</sourceId>
+    <destinationId>after_hr_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_mgr_after_mgr</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>after_manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_phr_hr</id>
+    <type>regular</type>
+    <sourceId>pending_hr</sourceId>
+    <destinationId>hr_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_pmgr_mgr</id>
+    <type>regular</type>
+    <sourceId>pending_manager</sourceId>
+    <destinationId>manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_resub_submit</id>
+    <type>regular</type>
+    <sourceId>resubmit</sourceId>
+    <destinationId>submit_request</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_start_submit</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit_request</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_submit_detail</id>
+    <type>regular</type>
+    <sourceId>submit_request</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>arc_submit_pmgr</id>
+    <type>regular</type>
+    <sourceId>submit_request</sourceId>
+    <destinationId>pending_manager</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
