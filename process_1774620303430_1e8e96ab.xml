@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>list_process</id>
+  <version>1.0.0</version>
+  <initials>LST</initials>
+  <title>Item Management List</title>
+  <icon>list_alt</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="taskRef">
+    <id>item_tasks</id>
+    <title>Items</title>
+  </data>
+  <data type="button">
+    <id>add_item</id>
+    <title/>
+    <placeholder>Add New Item</placeholder>
+    <init>1</init>
+    <event type="set">
+      <id>add_item_set</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            item_tasks: f.item_tasks;
+            def newItem = createCase(workspace + "item_process", "New Item", "blue")
+            def tid = newItem.tasks.find { it.transition == "item_form" }?.task
+            if (tid) {
+            change item_tasks value { (item_tasks.value ?: []) + tid }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </data>
+  <transition>
+    <id>dashboard</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Manage Items</label>
+    <icon>dashboard</icon>
+    <assignPolicy>auto</assignPolicy>
+    <dataGroup>
+      <id>dg_list</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Item List</title>
+      <dataRef>
+        <id>add_item</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>raised</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>item_tasks</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>p_main</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Active</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a_read</id>
+    <type>read</type>
+    <sourceId>p_main</sourceId>
+    <destinationId>dashboard</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
