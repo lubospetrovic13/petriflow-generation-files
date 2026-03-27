@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>invoice_process</id>
+  <version>1.0.0</version>
+  <initials>INV</initials>
+  <title>Invoice Process</title>
+  <icon>receipt_long</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>invoice_on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            status: f.status;
+            change status value { "pending" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>user</id>
+    <title>User</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="number">
+    <id>amount</id>
+    <title>Invoice Amount</title>
+    <value/>
+  </data>
+  <data type="file">
+    <id>invoice_file</id>
+    <title>Invoice File</title>
+    <component>
+      <name>preview</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>order_id</id>
+    <title>Order</title>
+    <options/>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+    <value>pending</value>
+  </data>
+  <data type="text">
+    <id>order_case_id</id>
+    <title>Order Case ID</title>
+    <value/>
+  </data>
+  <transition>
+    <id>register_invoice</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Register Invoice</label>
+    <icon>note_add</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>user</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>invoice_entry</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Details</title>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>order_id</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <event type="assign">
+          <id>order_id_assign_pre</id>
+          <actions phase="pre">
+            <action id="2">
+<![CDATA[
+                order_id: f.order_id;
+                def opts = findCases { it.processIdentifier.eq("order_process").and(it.active.eq(true)) }
+                .findAll { it.dataSet["subject"]?.value }
+                .collectEntries { [(it.stringId): (it.dataSet["subject"]?.value ?: "Order " + it.stringId)] }
+                change order_id options { opts }
+                ]]>
+            </action>
+          </actions>
+        </event>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>register_invoice_finish_post</id>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            order_id: f.order_id, order_case_id: f.order_case_id;
+            change order_case_id value { order_id.value }
+            def orderCase = findCase { it._id.eq(order_id.value) }
+            if (orderCase) {
+            setData("bulk_invoice_approval", orderCase, [
+            invoices: ["value": ((orderCase.dataSet["invoices"]?.value ?: []) + useCase.stringId), "type": "caseRef"]
+            ])
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>approve_invoice</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Approve Invoice</label>
+    <icon>check</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>user</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>invoice_approval</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Approval</title>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>approve_invoice_finish_pre</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            status: f.status;
+            change status value { "approved" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>reject_invoice</id>
+    <x>304</x>
+    <y>304</y>
+    <label>Reject Invoice</label>
+    <icon>cancel</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>user</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>invoice_rejection</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Rejection</title>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>reject_invoice_finish_pre</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status;
+            change status value { "rejected" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_registered</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Registered</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_approval</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Approval</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>400</x>
+    <y>304</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_approved</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>register_invoice</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>register_invoice</sourceId>
+    <destinationId>p_registered</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_registered</sourceId>
+    <destinationId>approve_invoice</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>approve_invoice</sourceId>
+    <destinationId>p_approved</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_registered</sourceId>
+    <destinationId>reject_invoice</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>reject_invoice</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
