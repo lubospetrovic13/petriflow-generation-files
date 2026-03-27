@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>list</id>
+  <version>1.0.0</version>
+  <initials>LST</initials>
+  <title>List</title>
+  <icon>list</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            // No auto-actions on create
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>default</id>
+    <title>Default</title>
+  </role>
+  <data type="text">
+    <id>list_title</id>
+    <title>List Title</title>
+    <value>My List</value>
+  </data>
+  <data type="caseRef">
+    <id>item_cases</id>
+    <title>Items</title>
+    <allowedNets>
+      <allowedNet>item</allowedNet>
+    </allowedNets>
+  </data>
+  <data type="taskRef">
+    <id>item_tasks</id>
+    <title>Item Panels</title>
+    <init>item_form</init>
+  </data>
+  <data type="button">
+    <id>add_item</id>
+    <title/>
+    <placeholder>Add Item</placeholder>
+    <init>1</init>
+    <event type="set">
+      <id>add_item_set</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            item_cases: f.item_cases, item_tasks: f.item_tasks;
+            def c = createCase("item")
+            def tid = c.tasks.find { it.transition == "item_form" }?.task
+            assignTask(findTask({ it._id.eq(tid) }))
+            // Add new case ID to caseRef if not already present
+            if (!(item_cases.value ?: []).contains(c.stringId)) {
+            change item_cases value { (item_cases.value ?: []) + c.stringId }
+            }
+            // Add new task ID to taskRef if not already present
+            if (!(item_tasks.value ?: []).contains(tid)) {
+            change item_tasks value { (item_tasks.value ?: []) + tid }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </data>
+  <transition>
+    <id>list_task</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Edit List</label>
+    <icon>edit</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>main</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>List</title>
+      <dataRef>
+        <id>list_title</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>add_item</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>item_tasks</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_list</id>
+    <x>304</x>
+    <y>208</y>
+    <label>List</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>list_task</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>read</type>
+    <sourceId>p_list</sourceId>
+    <destinationId>list_task</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>list_task</sourceId>
+    <destinationId>p_list</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
