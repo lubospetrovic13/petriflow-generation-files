@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>public_request</id>
+  <version>1.0.0</version>
+  <initials>PRQ</initials>
+  <title>Public Request</title>
+  <icon>assignment</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>true</anonymousRole>
+  <transitionRole>false</transitionRole>
+
+  <caseEvents>
+    <event type="create">
+      <id>ce_create</id>
+      <actions phase="post">
+        <action id="1"><![CDATA[
+          status: f.status;
+          change status value { "Submitted" }
+        ]]></action>
+      </actions>
+    </event>
+  </caseEvents>
+
+  <role>
+    <id>registrar</id>
+    <title>Registrar</title>
+  </role>
+  <role>
+    <id>lawyer</id>
+    <title>Lawyer</title>
+  </role>
+  <role>
+    <id>pr_agent</id>
+    <title>PR Agent</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+
+  <!-- DATA FIELDS -->
+
+  <data type="text">
+    <id>first_name</id>
+    <title>First Name</title>
+  </data>
+  <data type="text">
+    <id>last_name</id>
+    <title>Last Name</title>
+  </data>
+  <data type="text">
+    <id>email</id>
+    <title>Email</title>
+  </data>
+  <data type="text">
+    <id>phone</id>
+    <title>Phone Number</title>
+  </data>
+  <data type="text">
+    <id>request_text</id>
+    <title>Request Description</title>
+    <component><name>textarea</name></component>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment (optional)</title>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+    <value>Submitted</value>
+  </data>
+  <data type="text">
+    <id>routing_decision</id>
+    <title>Route To</title>
+  </data>
+  <data type="enumeration_map">
+    <id>route_choice</id>
+    <title>Route To</title>
+    <options>
+      <option key="legal">Legal then PR</option>
+      <option key="pr">Directly to PR</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>legal_statement</id>
+    <title>Legal Statement</title>
+    <component><name>textarea</name></component>
+  </data>
+  <data type="text">
+    <id>pr_answer</id>
+    <title>Answer to Submitter</title>
+    <component><name>textarea</name></component>
+  </data>
+  <data type="number">
+    <id>go_legal</id>
+    <title>Go Legal</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_pr_direct</id>
+    <title>Go PR Direct</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_pr_from_legal</id>
+    <title>Go PR from Legal</title>
+    <init>0</init>
+  </data>
+
+  <!-- TRANSITIONS -->
+
+  <!-- Public submission form -->
+  <transition>
+    <id>t_submit</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submit Request</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>anonymous</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Your Request</title>
+      <dataRef>
+        <id>first_name</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>last_name</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>1</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>email</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>phone</id>
+        <logic><behavior>editable</behavior><behavior>optional</behavior></logic>
+        <layout><x>1</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>request_text</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>2</y><rows>3</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic><behavior>editable</behavior><behavior>optional</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_submit_finish</id>
+      <actions phase="pre">
+        <action id="2"><![CDATA[
+          status: f.status;
+          change status value { "Under Review" }
+        ]]></action>
+      </actions>
+      <actions phase="post">
+        <action id="3"><![CDATA[
+          email: f.email, first_name: f.first_name, last_name: f.last_name;
+          sendEmail(
+            [email.value],
+            "Your request has been received",
+            "Dear ${first_name.value} ${last_name.value},\n\nThank you for your submission. Your request has been received and is currently under review.\n\nYou can track the status of your request at any time using your case URL.\n\nKind regards,\nThe Team"
+          )
+        ]]></action>
+      </actions>
+    </event>
+  </transition>
+
+  <!-- Registrar review and routing -->
+  <transition>
+    <id>t_registrar</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Review & Route</label>
+    <icon>rule</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>registrar</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_registrar</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Request</title>
+      <dataRef>
+        <id>first_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>last_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>email</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>phone</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>1</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>request_text</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>2</y><rows>3</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>route_choice</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>6</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_registrar_finish</id>
+      <actions phase="pre">
+        <action id="4"><![CDATA[
+          go_legal: f.go_legal, go_pr_direct: f.go_pr_direct, route_choice: f.route_choice, status: f.status;
+          if (route_choice.value == "legal") {
+            change go_legal value { 1 }
+            change go_pr_direct value { 0 }
+            change status value { "With Legal" }
+          } else {
+            change go_legal value { 0 }
+            change go_pr_direct value { 1 }
+            change status value { "With PR" }
+          }
+        ]]></action>
+      </actions>
+      <actions phase="post">
+        <action id="5"><![CDATA[
+          route_choice: f.route_choice;
+          if (route_choice.value == "legal") {
+            sendEmail(
+              ["legal@example.com"],
+              "New request assigned to Legal",
+              "A new public request has been routed to the Legal department for review. Please log in to process it."
+            )
+          } else {
+            sendEmail(
+              ["pr@example.com"],
+              "New request assigned to PR",
+              "A new public request has been routed directly to the PR department. Please log in to process it."
+            )
+          }
+        ]]></action>
+      </actions>
+    </event>
+  </transition>
+
+  <!-- Legal statement -->
+  <transition>
+    <id>t_legal</id>
+    <x>784</x>
+    <y>80</y>
+    <label>Write Legal Statement</label>
+    <icon>gavel</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>lawyer</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_legal</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Legal Review</title>
+      <dataRef>
+        <id>first_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>last_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>request_text</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>3</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>4</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>legal_statement</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>4</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_legal_finish</id>
+      <actions phase="pre">
+        <action id="6"><![CDATA[
+          go_pr_from_legal: f.go_pr_from_legal, status: f.status;
+          change go_pr_from_legal value { 1 }
+          change status value { "With PR" }
+        ]]></action>
+      </actions>
+      <actions phase="post">
+        <action id="7"><![CDATA[
+          sendEmail(
+            ["pr@example.com"],
+            "Request from Legal now with PR",
+            "A request has been reviewed by Legal and is now awaiting your response in the PR department. Please log in to process it."
+          )
+        ]]></action>
+      </actions>
+    </event>
+  </transition>
+
+  <!-- PR response — direct path -->
+  <transition>
+    <id>t_pr_direct</id>
+    <x>784</x>
+    <y>336</y>
+    <label>Write PR Answer (Direct)</label>
+    <icon>forum</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>pr_agent</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_pr_direct</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>PR Response</title>
+      <dataRef>
+        <id>first_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>last_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>email</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>request_text</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>2</y><rows>3</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>pr_answer</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>6</y><rows>4</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_pr_direct_finish</id>
+      <actions phase="pre">
+        <action id="8"><![CDATA[
+          status: f.status;
+          change status value { "Answered" }
+        ]]></action>
+      </actions>
+      <actions phase="post">
+        <action id="9"><![CDATA[
+          email: f.email, first_name: f.first_name, last_name: f.last_name, pr_answer: f.pr_answer;
+          sendEmail(
+            [email.value],
+            "Your request has been answered",
+            "Dear ${first_name.value} ${last_name.value},\n\n${pr_answer.value}\n\nKind regards,\nThe PR Team"
+          )
+        ]]></action>
+      </actions>
+    </event>
+  </transition>
+
+  <!-- PR response — via legal path -->
+  <transition>
+    <id>t_pr_legal</id>
+    <x>1072</x>
+    <y>80</y>
+    <label>Write PR Answer (via Legal)</label>
+    <icon>forum</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>pr_agent</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_pr_legal</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>PR Response</title>
+      <dataRef>
+        <id>first_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>last_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>email</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>request_text</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>2</y><rows>3</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>legal_statement</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>6</y><rows>3</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>pr_answer</id>
+        <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+        <layout><x>0</x><y>9</y><rows>4</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_pr_legal_finish</id>
+      <actions phase="pre">
+        <action id="10"><![CDATA[
+          status: f.status;
+          change status value { "Answered" }
+        ]]></action>
+      </actions>
+      <actions phase="post">
+        <action id="11"><![CDATA[
+          email: f.email, first_name: f.first_name, last_name: f.last_name, pr_answer: f.pr_answer;
+          sendEmail(
+            [email.value],
+            "Your request has been answered",
+            "Dear ${first_name.value} ${last_name.value},\n\n${pr_answer.value}\n\nKind regards,\nThe PR Team"
+          )
+        ]]></action>
+      </actions>
+    </event>
+  </transition>
+
+  <!-- Persistent status view for submitter -->
+  <transition>
+    <id>t_status_view</id>
+    <x>496</x>
+    <y>16</y>
+    <label>Request Status</label>
+    <icon>info</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>anonymous</id>
+      <logic><perform>true</perform></logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Your Request Status</title>
+      <dataRef>
+        <id>first_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>last_name</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>1</x><y>0</y><rows>1</rows><cols>1</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>request_text</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>1</y><rows>3</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>status</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>4</y><rows>1</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+      <dataRef>
+        <id>pr_answer</id>
+        <logic><behavior>visible</behavior></logic>
+        <layout><x>0</x><y>5</y><rows>4</rows><cols>2</cols><template>material</template><appearance>outline</appearance></layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+
+  <!-- PLACES -->
+
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_pending</id>
+    <x>352</x>
+    <y>208</y>
+    <label>Pending Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>352</x>
+    <y>16</y>
+    <label>Status Live</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_legal_in</id>
+    <x>640</x>
+    <y>80</y>
+    <label>Legal Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_pr_direct_in</id>
+    <x>640</x>
+    <y>336</y>
+    <label>PR Direct Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_pr_legal_in</id>
+    <x>928</x>
+    <y>80</y>
+    <label>PR via Legal Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done_direct</id>
+    <x>928</x>
+    <y>336</y>
+    <label>Done Direct</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done_legal</id>
+    <x>1216</x>
+    <y>80</y>
+    <label>Done via Legal</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+
+  <!-- ARCS -->
+
+  <!-- start → submit -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>t_submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- submit → p_pending -->
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_pending</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- submit → p_status -->
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- p_status → t_status_view (read — never consumed) -->
+  <arc>
+    <id>a4</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>t_status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- p_pending → t_registrar -->
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_pending</sourceId>
+    <destinationId>t_registrar</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- t_registrar → p_legal_in (variable) -->
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>t_registrar</sourceId>
+    <destinationId>p_legal_in</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_legal</reference>
+  </arc>
+  <!-- t_registrar → p_pr_direct_in (variable) -->
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>t_registrar</sourceId>
+    <destinationId>p_pr_direct_in</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_pr_direct</reference>
+  </arc>
+  <!-- p_legal_in → t_legal -->
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>p_legal_in</sourceId>
+    <destinationId>t_legal</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- t_legal → p_pr_legal_in (variable) -->
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>t_legal</sourceId>
+    <destinationId>p_pr_legal_in</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_pr_from_legal</reference>
+  </arc>
+  <!-- p_pr_legal_in → t_pr_legal -->
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>p_pr_legal_in</sourceId>
+    <destinationId>t_pr_legal</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- t_pr_legal → p_done_legal -->
+  <arc>
+    <id>a11</id>
+    <type>regular</type>
+    <sourceId>t_pr_legal</sourceId>
+    <destinationId>p_done_legal</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- p_pr_direct_in → t_pr_direct -->
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>p_pr_direct_in</sourceId>
+    <destinationId>t_pr_direct</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- t_pr_direct → p_done_direct -->
+  <arc>
+    <id>a13</id>
+    <type>regular</type>
+    <sourceId>t_pr_direct</sourceId>
+    <destinationId>p_done_direct</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+
+</document>
