@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>invoice_process</id>
+  <version>1.0.0</version>
+  <initials>INV</initials>
+  <title>Invoice Process</title>
+  <icon>receipt</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- Data Fields -->
+  <data type="text">
+    <id>invoice_number</id>
+    <title>Invoice Number</title>
+  </data>
+  <data type="number">
+    <id>amount</id>
+    <title>Amount</title>
+    <component>
+      <name>currency</name>
+    </component>
+  </data>
+  <data type="date">
+    <id>invoice_date</id>
+    <title>Invoice Date</title>
+  </data>
+  <data type="file">
+    <id>invoice_file</id>
+    <title>Invoice File</title>
+  </data>
+  <data type="enumeration_map">
+    <id>order_id</id>
+    <title>Link to Order</title>
+  </data>
+  <data type="enumeration_map">
+    <id>approval_decision</id>
+    <title>Approval</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <!-- Transitions -->
+  <transition>
+    <id>register_invoice</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Register Invoice</label>
+    <icon>add_box</icon>
+    <assignPolicy>auto</assignPolicy>
+    <event type="assign">
+      <id>load_orders</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            order_id: f.order_id;
+            def orders = findCases { it.processIdentifier.eq(workspace + "order_process") }
+            .findAll { c -> (c.activePlaces?.get("p_open") ?: 0) > 0 }
+            .collectEntries { [(it.stringId): "Order: " + it.getFieldValue("subject")] }
+            change order_id options { orders }
+            ]]>
+        </action>
+      </actions>
+    </event>
+    <dataGroup>
+      <id>dg_reg</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Details</title>
+      <dataRef>
+        <id>order_id</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_number</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>reg_finish</id>
+      <actions phase="post">
+        <action id="2">
+<![CDATA[
+            async.run { assignTask("notify_order"); finishTask("notify_order") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>notify_order</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Notify Order</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>notify_finish</id>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            order_id: f.order_id;
+            def parent = findCase { it._id.eq(order_id.value) }
+            if (parent) {
+            setData("ipc_refresh_target", parent, ["refresh_trigger": ["value": java.util.UUID.randomUUID().toString(), "type": "text"]])
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>invoice_approval</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Invoice Approval</label>
+    <icon>fact_check</icon>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_inv_app</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Review</title>
+      <dataRef>
+        <id>invoice_number</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+        <component>
+          <name>preview</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>approval_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- Places and Arcs -->
+  <place>
+    <id>p0</id>
+    <x>112</x>
+    <y>304</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p1</id>
+    <x>304</x>
+    <y>304</y>
+    <label>Registered</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p2</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Pending Approval</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p0</sourceId>
+    <destinationId>register_invoice</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>register_invoice</sourceId>
+    <destinationId>p1</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p1</sourceId>
+    <destinationId>notify_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>notify_order</sourceId>
+    <destinationId>p2</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>read</type>
+    <sourceId>p2</sourceId>
+    <destinationId>invoice_approval</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
