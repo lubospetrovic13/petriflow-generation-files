@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>invoice_process</id>
+  <version>1.0.0</version>
+  <initials>INV</initials>
+  <title>Invoice Registration</title>
+  <icon>receipt</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="text">
+    <id>invoice_number</id>
+    <title>Invoice Number</title>
+  </data>
+  <data type="number">
+    <id>amount</id>
+    <title>Amount</title>
+    <component>
+      <name>currency</name>
+    </component>
+  </data>
+  <data type="date">
+    <id>invoice_date</id>
+    <title>Invoice Date</title>
+  </data>
+  <data type="file">
+    <id>invoice_file</id>
+    <title>Invoice File</title>
+  </data>
+  <data type="enumeration_map">
+    <id>parent_order_id</id>
+    <title>Link to Approved Order</title>
+  </data>
+  <data type="enumeration_map">
+    <id>approval_decision</id>
+    <title>Approval Decision</title>
+    <options>
+      <option key="approve">Approve Invoice</option>
+      <option key="reject">Reject Invoice</option>
+    </options>
+  </data>
+  <transition>
+    <id>register_invoice</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Register Invoice</label>
+    <icon>add_box</icon>
+    <assignPolicy>auto</assignPolicy>
+    <dataGroup>
+      <id>dg_reg</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Details</title>
+      <dataRef>
+        <id>parent_order_id</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_number</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="assign">
+      <id>reg_assign</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            parent_order_id: f.parent_order_id;
+            def orders = findCases { it.processIdentifier.eq(workspace + "order_process").and(it.dataSet.get("status").eq("Approved and Open")) }
+            change parent_order_id options { orders.collectEntries { [(it.stringId): "Order: " + it.getFieldValue("subject")] } }
+            ]]>
+        </action>
+      </actions>
+    </event>
+    <event type="finish">
+      <id>reg_finish</id>
+      <actions phase="post">
+        <action id="5">
+<![CDATA[
+            async.run {
+            assignTask("notify_order");
+            finishTask("notify_order")
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>notify_order</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Notify Order</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>notify_finish</id>
+      <actions phase="post">
+        <action id="6">
+<![CDATA[
+            parent_order_id: f.parent_order_id;
+            def orderCase = findCase { it._id.eq(parent_order_id.value) }
+            if (orderCase) {
+            setData("open_order_view", orderCase, ["refresh_trigger": ["value": java.util.UUID.randomUUID().toString(), "type": "text"]])
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>invoice_approval</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Invoice Approval</label>
+    <icon>check_circle</icon>
+    <dataGroup>
+      <id>dg_inv_app</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Review</title>
+      <dataRef>
+        <id>invoice_number</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>approval_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>p_start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_notifying</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Notifying</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_pending_approval</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Pending Approval</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>register_invoice</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>register_invoice</sourceId>
+    <destinationId>p_notifying</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_notifying</sourceId>
+    <destinationId>notify_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>notify_order</sourceId>
+    <destinationId>p_pending_approval</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_pending_approval</sourceId>
+    <destinationId>invoice_approval</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>invoice_approval</sourceId>
+    <destinationId>p_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
