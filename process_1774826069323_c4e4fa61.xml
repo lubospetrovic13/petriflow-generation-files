@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>order_process</id>
+  <version>1.0.0</version>
+  <initials>ORD</initials>
+  <title>Order Process</title>
+  <icon>assignment</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>order_on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run { assignTask("order_form"); finishTask("order_form") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>user</id>
+    <title>User</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+    <init/>
+    <value/>
+    <desc/>
+    <component/>
+  </data>
+  <data type="text">
+    <id>supplier</id>
+    <title>Supplier Name</title>
+    <init/>
+    <value/>
+    <desc/>
+    <component/>
+  </data>
+  <data type="text">
+    <id>notes</id>
+    <title>Notes</title>
+    <init/>
+    <value/>
+    <desc/>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>status</id>
+    <title>Status</title>
+    <options>
+      <option key="draft">Draft</option>
+      <option key="submitted">Submitted</option>
+      <option key="approved">Approved</option>
+      <option key="sent">Sent</option>
+    </options>
+    <init>draft</init>
+  </data>
+  <data type="taskRef">
+    <id>linked_invoices</id>
+    <title>Linked Invoices</title>
+  </data>
+  <transition>
+    <id>order_form</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Order Form</label>
+    <icon>edit</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>user</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>order_form_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Order Details</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>supplier</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>order_form_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status;
+            change status value { "submitted" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>order_approve</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Approve Order</label>
+    <icon>check_circle</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>order_approve_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Approve Order</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>supplier</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>notes</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>order_approve_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            status: f.status;
+            change status value { "approved" }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="4">
+<![CDATA[
+            async.run { assignTask("order_sent"); finishTask("order_sent") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>order_sent</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Order Sent</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>order_sent_finish</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status;
+            change status value { "sent" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>bulk_invoice_approval</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Bulk Invoice Approval</label>
+    <icon>fact_check</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>user</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>bulk_invoice_approval_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Approval Panel</title>
+      <dataRef>
+        <id>linked_invoices</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>2</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p0</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Order Draft</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p1</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Order Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_sent</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Order Sent</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_panel</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Invoice Panel</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>order_form</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>order_form</sourceId>
+    <destinationId>p0</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p0</sourceId>
+    <destinationId>order_approve</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>order_approve</sourceId>
+    <destinationId>p1</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p1</sourceId>
+    <destinationId>order_sent</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>order_sent</sourceId>
+    <destinationId>p_sent</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>p_sent</sourceId>
+    <destinationId>p_panel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>read</type>
+    <sourceId>p_panel</sourceId>
+    <destinationId>bulk_invoice_approval</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
