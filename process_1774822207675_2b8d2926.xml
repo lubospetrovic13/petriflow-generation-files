@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>order_process</id>
+  <version>1.0.0</version>
+  <initials>ORD</initials>
+  <title>Order Process</title>
+  <icon>shopping_cart</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- Data Fields -->
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+  </data>
+  <data type="text">
+    <id>supplier</id>
+    <title>Supplier Name</title>
+  </data>
+  <data type="date">
+    <id>order_date</id>
+    <title>Order Date</title>
+  </data>
+  <data type="text">
+    <id>notes</id>
+    <title>Notes</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Current Status</title>
+    <value>Draft</value>
+  </data>
+  <data type="text">
+    <id>manager_comment</id>
+    <title>Manager Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>decision</id>
+    <title>Manager Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>go_approve</id>
+    <title>Go Approve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject</id>
+    <title>Go Reject</title>
+    <init>0</init>
+  </data>
+  <data type="taskRef">
+    <id>linked_invoices</id>
+    <title>Linked Invoices</title>
+  </data>
+  <data type="text">
+    <id>refresh_trigger</id>
+    <title>Refresh Trigger</title>
+    <event type="set">
+      <id>refresh_set</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            invoices: f.linked_invoices;
+            def tasks = findTasks { it.processIdentifier.eq(workspace + "invoice_process").and(it.transitionId.eq("invoice_approval")) }
+            .findAll { t ->
+            def c = findCase { it._id.eq(t.caseId) }
+            return c?.getFieldValue("order_id") == useCase.stringId
+            }
+            change invoices value { tasks.collect { it.stringId } }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </data>
+  <!-- Transitions -->
+  <transition>
+    <id>submit_order</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Order</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Order Details</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>supplier</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>order_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status; change status value { "Pending Approval" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>manager_review</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>rate_review</icon>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_review</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Decision</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+        <event type="set">
+          <id>comment_req</id>
+          <actions phase="post">
+            <action id="3">
+<![CDATA[
+                t_review: t.manager_review, decision: f.decision, comment: f.manager_comment;
+                if (decision.value == "reject") { make comment, required on t_review when { true } }
+                else { make comment, optional on t_review when { true } }
+                ]]>
+            </action>
+          </actions>
+        </event>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>review_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            dec: f.decision, go_app: f.go_approve, go_rej: f.go_reject, status: f.status;
+            if (dec.value == "approve") {
+            change go_app value { 1 }; change go_rej value { 0 }
+            change status value { "Approved and Open" }
+            } else {
+            change go_app value { 0 }; change go_rej value { 1 }
+            change status value { "Rejected - Correction Required" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>order_dashboard</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Order and Invoices</label>
+    <icon>dashboard</icon>
+    <dataGroup>
+      <id>dg_dash</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Order Status and Linked Invoices</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>linked_invoices</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>ipc_refresh_target</id>
+    <x>880</x>
+    <y>16</y>
+    <label>System Refresh Target</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+  </transition>
+  <!-- Places and Arcs -->
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>304</y>
+    <label>Draft</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_review</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_open</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Open</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>submit_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_order</sourceId>
+    <destinationId>p_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_review</sourceId>
+    <destinationId>manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- XOR Split -->
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_open</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approve</reference>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_start</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject</reference>
+    <breakpoint>
+      <x>496</x>
+      <y>400</y>
+    </breakpoint>
+    <breakpoint>
+      <x>112</x>
+      <y>400</y>
+    </breakpoint>
+  </arc>
+  <!-- Persistent Dashboard and IPC Target -->
+  <arc>
+    <id>a6</id>
+    <type>read</type>
+    <sourceId>p_open</sourceId>
+    <destinationId>order_dashboard</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>read</type>
+    <sourceId>p_open</sourceId>
+    <destinationId>ipc_refresh_target</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
