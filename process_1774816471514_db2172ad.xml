@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>order_process</id>
+  <version>1.0.0</version>
+  <initials>ORD</initials>
+  <title>Order Management</title>
+  <icon>shopping_cart</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>order_create</id>
+      <actions phase="post">
+        <action id="oc1">
+<![CDATA[
+            status: f.status;
+            change status value { "Draft" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+  </data>
+  <data type="text">
+    <id>supplier</id>
+    <title>Supplier Name</title>
+  </data>
+  <data type="date">
+    <id>order_date</id>
+    <title>Order Date</title>
+  </data>
+  <data type="text">
+    <id>notes</id>
+    <title>Notes</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Current Status</title>
+  </data>
+  <data type="text">
+    <id>manager_comment</id>
+    <title>Manager Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>decision</id>
+    <title>Manager Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject and Return</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>go_approve</id>
+    <title>Go Approve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject</id>
+    <title>Go Reject</title>
+    <init>0</init>
+  </data>
+  <data type="taskRef">
+    <id>linked_invoices</id>
+    <title>Linked Invoices</title>
+  </data>
+  <data type="text">
+    <id>refresh_trigger</id>
+    <title>Refresh Trigger</title>
+    <event type="set">
+      <id>trigger_set</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            linked_invoices: f.linked_invoices;
+            // Vyhladame vsetky ulohy 'invoice_approval' v celom workspace
+            def allInvoiceTasks = findTasks { it.processIdentifier.eq(workspace + "invoice_process").and(it.transitionId.eq("invoice_approval")) }
+            // Odfiltrujeme tie, ktore patria k tejto objednavke (podla parent_order_id)
+            def myInvoices = allInvoiceTasks.findAll { t ->
+            def data = getData(t)
+            return data["parent_order_id"]?.value == useCase.stringId
+            }
+            change linked_invoices value { myInvoices.collect { it.stringId } }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </data>
+  <transition>
+    <id>create_order</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Order</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Order Details</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>supplier</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>order_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status;
+            change status value { "Pending Manager Review" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>manager_review</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>rate_review</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_review</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Decision</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>review_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            decision: f.decision, go_approve: f.go_approve, go_reject: f.go_reject, status: f.status, comment: f.manager_comment;
+            if (decision.value == "approve") {
+            change go_approve value { 1 }; change go_reject value { 0 }
+            change status value { "Approved and Open" }
+            } else {
+            if (!comment.value) { throw new java.lang.IllegalStateException("Comment is required for rejection") }
+            change go_approve value { 0 }; change go_reject value { 1 }
+            change status value { "Rejected" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>open_order_view</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Open Order and Invoices</label>
+    <icon>folder_open</icon>
+    <dataGroup>
+      <id>dg_open</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Order Management</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>linked_invoices</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>status_view</id>
+    <x>496</x>
+    <y>16</y>
+    <label>Order Status</label>
+    <icon>info</icon>
+    <priority>2</priority>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Current State</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>p_start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Draft</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_review</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Reviewing</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_open</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Open</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>304</x>
+    <y>16</y>
+    <label>Status Place</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>create_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>create_order</sourceId>
+    <destinationId>p_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_review</sourceId>
+    <destinationId>manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_open</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approve</reference>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_start</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject</reference>
+    <breakpoint>
+      <x>496</x>
+      <y>400</y>
+    </breakpoint>
+    <breakpoint>
+      <x>16</x>
+      <y>400</y>
+    </breakpoint>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>read</type>
+    <sourceId>p_open</sourceId>
+    <destinationId>open_order_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>create_order</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
