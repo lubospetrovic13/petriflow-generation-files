@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>procurement_workflow</id>
+  <version>1.0.0</version>
+  <initials>PRO</initials>
+  <title>Internal Procurement Process</title>
+  <icon>shopping_cart</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>create_case</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            changeCaseProperty("title").about { "PO: New Request" }
+            changeCaseProperty("color").about { "blue" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>submitter</id>
+    <title>Submitter</title>
+  </role>
+  <role>
+    <id>legal</id>
+    <title>Legal Reviewer</title>
+  </role>
+  <role>
+    <id>finance</id>
+    <title>Finance Reviewer</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Procurement Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- Data Fields -->
+  <data type="text">
+    <id>vendor_name</id>
+    <title>Vendor Name</title>
+  </data>
+  <data type="number">
+    <id>amount</id>
+    <title>Amount</title>
+    <component>
+      <name>currency</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>category</id>
+    <title>Category</title>
+    <options>
+      <option key="software">Software</option>
+      <option key="hardware">Hardware</option>
+      <option key="services">Services</option>
+      <option key="other">Other</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>justification</id>
+    <title>Business Justification</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>description</id>
+    <title>Detailed Description</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Supporting Document</title>
+  </data>
+  <!-- Review Fields -->
+  <data type="enumeration_map">
+    <id>legal_decision</id>
+    <title>Legal Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>legal_comment</id>
+    <title>Legal Compliance Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>finance_decision</id>
+    <title>Finance Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>finance_comment</id>
+    <title>Finance Budget Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>status_summary</id>
+    <title>Current Status</title>
+    <init>Drafting Request</init>
+  </data>
+  <!-- Routing Flags -->
+  <data type="number">
+    <id>go_manager</id>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_revision</id>
+    <init>0</init>
+  </data>
+  <!-- Transitions -->
+  <transition>
+    <id>submit_po</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Purchase Order</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>PO Details</title>
+      <dataRef>
+        <id>vendor_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>category</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>justification</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>sub_fin</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status_summary, vendor: f.vendor_name;
+            change status value { "Pending Parallel Reviews" }
+            changeCaseProperty("title").about { "PO: " + vendor.value }
+            changeCaseProperty("color").about { "orange" }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            async.run { assignTask("split_reviews"); finishTask("split_reviews") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>split_reviews</id>
+    <x>304</x>
+    <y>208</y>
+    <label>System Split</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>split_post</id>
+      <actions phase="post">
+        <action id="31">
+<![CDATA[
+            async.run {
+            def t_status = findTask { it.transitionId.eq("status_view").and(it.caseId.eq(useCase.stringId)) }
+            if (!t_status) {
+            // This ensures status view is enabled only once
+            assignTask("status_view")
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>legal_review</id>
+    <x>496</x>
+    <y>112</y>
+    <label>Legal Compliance Review</label>
+    <icon>gavel</icon>
+    <roleRef>
+      <id>legal</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_legal</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Legal Assessment</title>
+      <dataRef>
+        <id>legal_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>finance_review</id>
+    <x>496</x>
+    <y>304</y>
+    <label>Finance Budget Review</label>
+    <icon>account_balance_wallet</icon>
+    <roleRef>
+      <id>finance</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_fin</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Finance Assessment</title>
+      <dataRef>
+        <id>finance_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>join_reviews</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Consolidate Reviews</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>join_fin</id>
+      <actions phase="pre">
+        <action id="6">
+<![CDATA[
+            ld: f.legal_decision, fd: f.finance_decision, gm: f.go_manager, gr: f.go_revision, status: f.status_summary;
+            if (ld.value == "approve" && fd.value == "approve") {
+            change gm value { 1 }; change gr value { 0 }
+            change status value { "Pending Final Approval" }
+            } else {
+            change gm value { 0 }; change gr value { 1 }
+            change status value { "Rejected - Revision Required" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="7">
+<![CDATA[
+            gr: f.go_revision, lc: f.legal_comment, fc: f.finance_comment;
+            if (gr.value == 1) {
+            sendEmail(["submitter@example.com"], "PO Request Rejected", "Legal: " + lc.value + "\nFinance: " + fc.value)
+            }
+            async.run { assignTask("router_sys"); finishTask("router_sys") }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>router_sys</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Router</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+  </transition>
+  <transition>
+    <id>manager_decision</id>
+    <x>1264</x>
+    <y>208</y>
+    <label>Final Procurement Decision</label>
+    <icon>assignment_turned_in</icon>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_mgr</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Summary and Decision</title>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>status_summary</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>mgr_fin</id>
+      <actions phase="post">
+        <action id="8">
+<![CDATA[
+            status: f.status_summary;
+            if (status.value.contains("Issue")) {
+            sendEmail(["submitter@example.com"], "PO Issued", "Your purchase order has been approved and issued.")
+            changeCaseProperty("color").about { "green" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>status_view</id>
+    <x>304</x>
+    <y>16</y>
+    <label>PO Status Dashboard</label>
+    <icon>dashboard</icon>
+    <priority>2</priority>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Current Status</title>
+      <dataRef>
+        <id>status_summary</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>vendor_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- Places -->
+  <place>
+    <id>p_start</id>
+    <x>0</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_split</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submitted</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_legal</id>
+    <x>400</x>
+    <y>112</y>
+    <label>Legal Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_finance</id>
+    <x>400</x>
+    <y>304</y>
+    <label>Finance Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_join</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Reviews Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_router</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Routing</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_manager</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Manager Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done</id>
+    <x>1456</x>
+    <y>208</y>
+    <label>Completed</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>112</x>
+    <y>16</y>
+    <label>Status Active</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- Arcs -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>submit_po</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_po</sourceId>
+    <destinationId>p_split</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_split</sourceId>
+    <destinationId>split_reviews</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>split_reviews</sourceId>
+    <destinationId>p_legal</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>split_reviews</sourceId>
+    <destinationId>p_finance</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>p_legal</sourceId>
+    <destinationId>legal_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>p_finance</sourceId>
+    <destinationId>finance_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>legal_review</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>finance_review</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>p_join</sourceId>
+    <destinationId>join_reviews</destinationId>
+    <multiplicity>2</multiplicity>
+  </arc>
+  <arc>
+    <id>a11</id>
+    <type>regular</type>
+    <sourceId>join_reviews</sourceId>
+    <destinationId>p_router</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>p_router</sourceId>
+    <destinationId>router_sys</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a13</id>
+    <type>regular</type>
+    <sourceId>router_sys</sourceId>
+    <destinationId>p_manager</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_manager</reference>
+  </arc>
+  <arc>
+    <id>a14</id>
+    <type>regular</type>
+    <sourceId>router_sys</sourceId>
+    <destinationId>p_start</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_revision</reference>
+    <breakpoint>
+      <x>880</x>
+      <y>400</y>
+    </breakpoint>
+    <breakpoint>
+      <x>0</x>
+      <y>400</y>
+    </breakpoint>
+  </arc>
+  <arc>
+    <id>a15</id>
+    <type>regular</type>
+    <sourceId>p_manager</sourceId>
+    <destinationId>manager_decision</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a16</id>
+    <type>regular</type>
+    <sourceId>manager_decision</sourceId>
+    <destinationId>p_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a17</id>
+    <type>regular</type>
+    <sourceId>submit_po</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a18</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
