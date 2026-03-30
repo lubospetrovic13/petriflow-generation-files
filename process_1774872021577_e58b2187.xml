@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>procurement_workflow</id>
+  <version>1.0.0</version>
+  <initials>PUR</initials>
+  <title>Internal Procurement Process</title>
+  <icon>shopping_cart</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>legal_reviewer</id>
+    <title>Legal Reviewer</title>
+  </role>
+  <role>
+    <id>finance_reviewer</id>
+    <title>Finance Reviewer</title>
+  </role>
+  <role>
+    <id>procurement_manager</id>
+    <title>Procurement Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- Data Fields -->
+  <data type="text">
+    <id>vendor_name</id>
+    <title>Vendor Name</title>
+  </data>
+  <data type="number">
+    <id>amount</id>
+    <title>Amount</title>
+  </data>
+  <data type="enumeration_map">
+    <id>category</id>
+    <title>Category</title>
+    <options>
+      <option key="software">Software</option>
+      <option key="hardware">Hardware</option>
+      <option key="services">Services</option>
+      <option key="other">Other</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>justification</id>
+    <title>Business Justification</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>description</id>
+    <title>Detailed Description</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Supporting Document</title>
+  </data>
+  <!-- Review Fields -->
+  <data type="enumeration_map">
+    <id>legal_decision</id>
+    <title>Legal Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>legal_comment</id>
+    <title>Legal Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>finance_decision</id>
+    <title>Finance Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>finance_comment</id>
+    <title>Finance Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>final_decision</id>
+    <title>Final Procurement Decision</title>
+    <options>
+      <option key="issue">Issue PO</option>
+      <option key="reject">Final Reject</option>
+    </options>
+  </data>
+  <!-- Status and Routing -->
+  <data type="text">
+    <id>status</id>
+    <title>Current Status</title>
+    <init>Draft</init>
+  </data>
+  <data type="number">
+    <id>is_rejected</id>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_resubmit</id>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_procurement</id>
+    <init>0</init>
+  </data>
+  <!-- Transitions -->
+  <transition>
+    <id>submit_po</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Purchase Order</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Request Details</title>
+      <dataRef>
+        <id>vendor_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>category</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>justification</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>sub_f</id>
+      <actions phase="pre">
+        <action id="1">status: f.status, is_rejected: f.is_rejected;
+                    change status value { "Parallel Review" }
+                    change is_rejected value { 0 }</action>
+      </actions>
+      <actions phase="post">
+        <action id="2">async.run { assignTask("split_reviews"); finishTask("split_reviews") }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>split_reviews</id>
+    <x>304</x>
+    <y>208</y>
+    <label>System Split</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+  </transition>
+  <transition>
+    <id>legal_review</id>
+    <x>496</x>
+    <y>112</y>
+    <label>Legal Compliance Review</label>
+    <icon>gavel</icon>
+    <roleRef>
+      <id>legal_reviewer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_legal</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Legal Review</title>
+      <dataRef>
+        <id>legal_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>leg_f</id>
+      <actions phase="pre">
+        <action id="3">dec: f.legal_decision, rej: f.is_rejected;
+                    if (dec.value == "reject") { change rej value { 1 } }</action>
+      </actions>
+      <actions phase="post">
+        <action id="4">async.run { assignTask("check_rejection"); finishTask("check_rejection") }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>finance_review</id>
+    <x>496</x>
+    <y>304</y>
+    <label>Finance Budget Review</label>
+    <icon>account_balance_wallet</icon>
+    <roleRef>
+      <id>finance_reviewer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_fin</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Finance Review</title>
+      <dataRef>
+        <id>finance_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>fin_f</id>
+      <actions phase="pre">
+        <action id="5">dec: f.finance_decision, rej: f.is_rejected;
+                    if (dec.value == "reject") { change rej value { 1 } }</action>
+      </actions>
+      <actions phase="post">
+        <action id="6">async.run { assignTask("check_rejection"); finishTask("check_rejection") }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>check_rejection</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Check Rejection</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>chk_f</id>
+      <actions phase="pre">
+        <action id="7">rej: f.is_rejected, resub: f.go_resubmit, proc: f.go_procurement, status: f.status;
+                    if (rej.value == 1) {
+                        change resub value { 1 }; change proc value { 0 }
+                        change status value { "Rejected - Revision Required" }
+                    } else {
+                        change resub value { 0 }; change proc value { 1 }
+                        change status value { "Reviews Approved" }
+                    }</action>
+      </actions>
+      <actions phase="post">
+        <action id="8">rej: f.is_rejected, leg_c: f.legal_comment, fin_c: f.finance_comment;
+                    if (rej.value == 1) {
+                        sendEmail([userService.loggedOrSystem.email], "PO Rejected", "Your PO was rejected. Legal: ${leg_c.value}. Finance: ${fin_c.value}")
+                    }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>procurement_review</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Final Procurement Decision</label>
+    <icon>assignment_turned_in</icon>
+    <roleRef>
+      <id>procurement_manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_proc</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Final Review</title>
+      <dataRef>
+        <id>legal_decision</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>finance_decision</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>final_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>proc_f</id>
+      <actions phase="pre">
+        <action id="9">dec: f.final_decision, status: f.status;
+                    if (dec.value == "issue") { change status value { "PO Issued" } }
+                    else { change status value { "Final Rejection" } }</action>
+      </actions>
+      <actions phase="post">
+        <action id="10">dec: f.final_decision;
+                    if (dec.value == "issue") {
+                        sendEmail([userService.loggedOrSystem.email], "PO Issued", "Your Purchase Order has been issued.")
+                    }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>status_view</id>
+    <x>112</x>
+    <y>16</y>
+    <label>Request Status</label>
+    <icon>info</icon>
+    <priority>2</priority>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Current Progress</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- Places -->
+  <place>
+    <id>p_start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Draft</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_split</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submitted</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_legal</id>
+    <x>400</x>
+    <y>112</y>
+    <label>Legal Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_finance</id>
+    <x>400</x>
+    <y>304</y>
+    <label>Finance Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_join</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Reviews Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_procurement</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Procurement Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Completed</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- Arcs -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>submit_po</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_po</sourceId>
+    <destinationId>p_split</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_split</sourceId>
+    <destinationId>split_reviews</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>split_reviews</sourceId>
+    <destinationId>p_legal</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>split_reviews</sourceId>
+    <destinationId>p_finance</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>p_legal</sourceId>
+    <destinationId>legal_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>p_finance</sourceId>
+    <destinationId>finance_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>legal_review</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>finance_review</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>p_join</sourceId>
+    <destinationId>check_rejection</destinationId>
+    <multiplicity>2</multiplicity>
+  </arc>
+  <!-- Routing Arcs -->
+  <arc>
+    <id>a11</id>
+    <type>regular</type>
+    <sourceId>check_rejection</sourceId>
+    <destinationId>p_procurement</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_procurement</reference>
+  </arc>
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>check_rejection</sourceId>
+    <destinationId>p_start</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_resubmit</reference>
+    <breakpoint>
+      <x>688</x>
+      <y>400</y>
+    </breakpoint>
+    <breakpoint>
+      <x>16</x>
+      <y>400</y>
+    </breakpoint>
+  </arc>
+  <arc>
+    <id>a13</id>
+    <type>regular</type>
+    <sourceId>p_procurement</sourceId>
+    <destinationId>procurement_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a14</id>
+    <type>regular</type>
+    <sourceId>procurement_review</sourceId>
+    <destinationId>p_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Persistent View Arcs -->
+  <arc>
+    <id>a15</id>
+    <type>read</type>
+    <sourceId>p_split</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a16</id>
+    <type>read</type>
+    <sourceId>p_legal</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a17</id>
+    <type>read</type>
+    <sourceId>p_finance</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a18</id>
+    <type>read</type>
+    <sourceId>p_join</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a19</id>
+    <type>read</type>
+    <sourceId>p_procurement</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a20</id>
+    <type>read</type>
+    <sourceId>p_done</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
