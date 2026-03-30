@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>invoice_process</id>
+  <version>1.0.0</version>
+  <initials>INV</initials>
+  <title>Invoice Process</title>
+  <icon>receipt</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>invoice_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            status: f.status;
+            change status value { "Draft" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>inv_submitter</id>
+    <title>Invoice Submitter</title>
+  </role>
+  <role>
+    <id>approver</id>
+    <title>Invoice Approver</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- DATA FIELDS -->
+  <data type="text">
+    <id>invoice_number</id>
+    <title>Invoice Number</title>
+  </data>
+  <data type="number">
+    <id>amount</id>
+    <title>Amount</title>
+  </data>
+  <data type="date">
+    <id>invoice_date</id>
+    <title>Invoice Date</title>
+  </data>
+  <data type="file">
+    <id>invoice_file</id>
+    <title>Invoice File</title>
+  </data>
+  <data type="enumeration_map">
+    <id>linked_order_id</id>
+    <title>Linked Order</title>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+  </data>
+  <data type="enumeration_map">
+    <id>decision</id>
+    <title>Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>rejection_reason</id>
+    <title>Rejection Reason</title>
+  </data>
+  <data type="number">
+    <id>go_approve</id>
+    <title>Go Approve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject</id>
+    <title>Go Reject</title>
+    <init>0</init>
+  </data>
+  <!-- TRANSITIONS -->
+  <transition>
+    <id>t_register</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Register Invoice</label>
+    <icon>add_circle</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>inv_submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_register</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Details</title>
+      <dataRef>
+        <id>linked_order_id</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_number</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>preview</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="assign">
+      <id>t_register_assign</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            linked_order_id: f.linked_order_id;
+            change linked_order_id options {
+            findCases { it.processIdentifier.eq(workspace + "order_process") }
+            .findAll { c -> (c.activePlaces?.get("p_open") ?: 0) > 0 }
+            .collectEntries { c ->
+            def subj = c.dataSet?.get("subject")?.value ?: c.stringId
+            def supp = c.dataSet?.get("supplier")?.value ?: ""
+            [(c.stringId): supp ? "${subj} - ${supp}" : subj]
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+    <event type="finish">
+      <id>t_register_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            status: f.status;
+            change status value { "Pending Approval" }
+            changeCaseProperty("color").about { "orange" }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="4">
+<![CDATA[
+            linked_order_id: f.linked_order_id;
+            async.run {
+            def orderCase = findCase { it.stringId.eq(linked_order_id.value) }
+            if (orderCase) {
+            def myTask = findTask { it.transitionId.eq("t_approval").and(it.caseId.eq(useCase.stringId)) }
+            if (myTask) {
+            def currentList = orderCase.dataSet?.get("linked_invoices")?.value ?: []
+            setData("t_ipc", orderCase, [
+            "linked_invoices": ["value": currentList + myTask.stringId, "type": "taskRef"]
+            ])
+            }
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>t_approval</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Approve Invoice</label>
+    <icon>task_alt</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>approver</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_approval</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Approval</title>
+      <dataRef>
+        <id>invoice_number</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>invoice_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>preview</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <event type="set">
+          <id>inv_decision_set</id>
+          <actions phase="post">
+            <action id="5">
+<![CDATA[
+                t_approval: t.t_approval, decision: f.decision, rejection_reason: f.rejection_reason;
+                if (decision.value == "reject") {
+                make rejection_reason, editable on t_approval when { true }
+                make rejection_reason, required on t_approval when { true }
+                } else {
+                make rejection_reason, optional on t_approval when { true }
+                make rejection_reason, hidden   on t_approval when { true }
+                }
+                ]]>
+            </action>
+          </actions>
+        </event>
+      </dataRef>
+      <dataRef>
+        <id>rejection_reason</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_approval_finish</id>
+      <actions phase="pre">
+        <action id="6">
+<![CDATA[
+            go_approve: f.go_approve, go_reject: f.go_reject, decision: f.decision, status: f.status;
+            if (decision.value == "approve") {
+            change go_approve value { 1 }
+            change go_reject  value { 0 }
+            change status value { "Approved" }
+            changeCaseProperty("color").about { "green" }
+            } else {
+            change go_approve value { 0 }
+            change go_reject  value { 1 }
+            change status value { "Rejected" }
+            changeCaseProperty("color").about { "red" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>t_status</id>
+    <x>208</x>
+    <y>16</y>
+    <label>Invoice Status</label>
+    <icon>info</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>inv_submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <roleRef>
+      <id>approver</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_inv_status</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Status</title>
+      <dataRef>
+        <id>invoice_number</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>rejection_reason</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- PLACES -->
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_approval</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Awaiting Approval</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_approved</id>
+    <x>784</x>
+    <y>112</y>
+    <label>Invoice Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>784</x>
+    <y>304</y>
+    <label>Invoice Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>112</x>
+    <y>16</y>
+    <label>Status Active</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ARCS -->
+  <!-- start → t_register -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>t_register</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- t_register → p_approval -->
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>t_register</sourceId>
+    <destinationId>p_approval</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- t_register → p_status -->
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>t_register</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- p_approval → t_approval -->
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>p_approval</sourceId>
+    <destinationId>t_approval</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- t_approval → p_approved (variable arc, approve branch) -->
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>t_approval</sourceId>
+    <destinationId>p_approved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approve</reference>
+  </arc>
+  <!-- t_approval → p_rejected (variable arc, reject branch) -->
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>t_approval</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject</reference>
+  </arc>
+  <!-- p_status → t_status (read arc — persistent status view) -->
+  <arc>
+    <id>a7</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>t_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
