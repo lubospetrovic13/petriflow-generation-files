@@ -1,0 +1,846 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>bug_tracker</id>
+  <version>1.0.0</version>
+  <initials>BUG</initials>
+  <title>Internal Bug Tracker</title>
+  <icon>bug_report</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run { assignTask("submit_bug"); }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>reporter</id>
+    <title>Reporter</title>
+  </role>
+  <role>
+    <id>triage</id>
+    <title>Triage</title>
+  </role>
+  <role>
+    <id>developer</id>
+    <title>Developer</title>
+  </role>
+  <role>
+    <id>qa</id>
+    <title>QA</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="text">
+    <id>bug_title</id>
+    <title>Title</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>bug_description</id>
+    <title>Description</title>
+    <init/>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>steps_to_reproduce</id>
+    <title>Steps to Reproduce</title>
+    <init/>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>severity</id>
+    <title>Severity</title>
+    <options>
+      <option key="critical">Critical</option>
+      <option key="high">High</option>
+      <option key="medium">Medium</option>
+      <option key="low">Low</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>component</id>
+    <title>Affected Component</title>
+    <init/>
+  </data>
+  <data type="file">
+    <id>screenshot</id>
+    <title>Screenshot</title>
+    <init/>
+    <component>
+      <name>preview</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>internal_priority</id>
+    <title>Internal Priority</title>
+    <options>
+      <option key="p1">P1 - Urgent</option>
+      <option key="p2">P2 - High</option>
+      <option key="p3">P3 - Medium</option>
+      <option key="p4">P4 - Low</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>triage_notes</id>
+    <title>Triage Notes</title>
+    <init/>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="user">
+    <id>assigned_developer</id>
+    <title>Assigned Developer</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>fix_description</id>
+    <title>Fix Description</title>
+    <init/>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>qa_decision</id>
+    <title>QA Decision</title>
+    <options>
+      <option key="accept">Accept</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>qa_feedback</id>
+    <title>QA Feedback</title>
+    <init/>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+    <init>New</init>
+  </data>
+  <data type="user">
+    <id>reporter_user</id>
+    <title>Reporter User</title>
+    <init/>
+  </data>
+  <data type="taskRef">
+    <id>status_panel</id>
+    <title>Status Panel</title>
+    <init>status_view</init>
+  </data>
+  <transition>
+    <id>submit_bug</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Bug</label>
+    <icon>bug_report</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>reporter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>bug_report_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Bug Report</title>
+      <dataRef>
+        <id>bug_title</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>bug_description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>steps_to_reproduce</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>severity</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>component</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>screenshot</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_bug_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status, reporter_user: f.reporter_user;
+            change status value { "Submitted" };
+            change reporter_user value { userService.loggedOrSystem.transformToUser() };
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            async.run { assignTask("triage_bug"); }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>triage_bug</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Triage Bug</label>
+    <icon>assignment_ind</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>triage</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>triage_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Triage</title>
+      <dataRef>
+        <id>internal_priority</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>triage_notes</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>assigned_developer</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>triage_bug_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            status: f.status;
+            change status value { "In Development" };
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="5">
+<![CDATA[
+            async.run { assignTask("dev_fix"); }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>dev_fix</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Developer Fix</label>
+    <icon>build</icon>
+    <assignPolicy>manual</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>developer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dev_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Developer Work</title>
+      <dataRef>
+        <id>fix_description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>dev_fix_finish</id>
+      <actions phase="pre">
+        <action id="6">
+<![CDATA[
+            status: f.status;
+            change status value { "Ready for QA" };
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="7">
+<![CDATA[
+            async.run { assignTask("qa_verify"); }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>qa_verify</id>
+    <x>688</x>
+    <y>208</y>
+    <label>QA Verification</label>
+    <icon>fact_check</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>qa</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>qa_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>QA Verification</title>
+      <dataRef>
+        <id>qa_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <event type="set">
+          <id>qa_decision_set</id>
+          <actions phase="post">
+            <action id="8">
+<![CDATA[
+                t_qa: t.qa_verify, qa_feedback: f.qa_feedback, qa_decision: f.qa_decision;
+                if (qa_decision.value == "reject") {
+                make qa_feedback, editable on t_qa when { true }
+                make qa_feedback, required on t_qa when { true }
+                } else {
+                make qa_feedback, hidden on t_qa when { true }
+                }
+                ]]>
+            </action>
+          </actions>
+        </event>
+      </dataRef>
+      <dataRef>
+        <id>qa_feedback</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>qa_verify_finish</id>
+      <actions phase="pre">
+        <action id="9">
+<![CDATA[
+            qa_decision: f.qa_decision, status: f.status;
+            if (qa_decision.value == "accept") {
+            change status value { "Resolved" }
+            } else {
+            change status value { "Rework Required" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="10">
+<![CDATA[
+            qa_decision: f.qa_decision, reporter_user: f.reporter_user, bug_title: f.bug_title, fix_description: f.fix_description;
+            if (qa_decision.value == "accept") {
+            sendEmail([reporter_user.value?.email], "Bug Resolved: ${bug_title.value}", "Your reported bug has been resolved. Fix: ${fix_description.value}")
+            }
+            ]]>
+        </action>
+        <action id="11">
+<![CDATA[
+            qa_decision: f.qa_decision;
+            if (qa_decision.value == "accept") {
+            async.run { assignTask("status_view"); }
+            } else {
+            async.run { assignTask("dev_fix"); }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>status_view</id>
+    <x>304</x>
+    <y>16</y>
+    <label>Status View</label>
+    <icon>visibility</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>reporter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>status_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Status</title>
+      <dataRef>
+        <id>bug_title</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>internal_priority</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>assigned_developer</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>fix_description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>qa_feedback</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>status_panel</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_submit</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submitted</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_triage</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Triage</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_dev</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Development</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_qa</id>
+    <x>784</x>
+    <y>208</y>
+    <label>QA</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>208</x>
+    <y>16</y>
+    <label>Status Place</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit_bug</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_bug</sourceId>
+    <destinationId>p_submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_submit</sourceId>
+    <destinationId>triage_bug</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>triage_bug</sourceId>
+    <destinationId>p_triage</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_triage</sourceId>
+    <destinationId>dev_fix</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>dev_fix</sourceId>
+    <destinationId>p_dev</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>p_dev</sourceId>
+    <destinationId>qa_verify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>qa_verify</sourceId>
+    <destinationId>p_qa</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Variable arcs for QA decision (accept/reject) -->
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>p_qa</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>qa_accept_flag</reference>
+  </arc>
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>p_qa</sourceId>
+    <destinationId>dev_fix</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>qa_reject_flag</reference>
+  </arc>
+  <!-- Read arc for persistent status view -->
+  <arc>
+    <id>a11</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- After submission, always enable status view -->
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>submit_bug</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- After QA accept, always enable status view -->
+  <arc>
+    <id>a13</id>
+    <type>regular</type>
+    <sourceId>status_view</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Routing flags for QA decision -->
+  <data type="number">
+    <id>qa_accept_flag</id>
+    <title>QA Accept Flag</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>qa_reject_flag</id>
+    <title>QA Reject Flag</title>
+    <init>0</init>
+  </data>
+  <transition>
+    <id>qa_decision_router</id>
+    <x>880</x>
+    <y>208</y>
+    <label>QA Router</label>
+    <icon>call_split</icon>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <!-- No dataGroup -->
+    <event type="assign">
+      <id>qa_router_assign</id>
+      <actions phase="pre">
+        <action id="12">
+<![CDATA[
+            qa_decision: f.qa_decision, qa_accept_flag: f.qa_accept_flag, qa_reject_flag: f.qa_reject_flag;
+            if (qa_decision.value == "accept") {
+            change qa_accept_flag value { 1 };
+            change qa_reject_flag value { 0 };
+            } else {
+            change qa_accept_flag value { 0 };
+            change qa_reject_flag value { 1 };
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+    <event type="assign">
+      <id>qa_router_assign_post</id>
+      <actions phase="post">
+        <action id="13">
+<![CDATA[
+            async.run {
+            def t = findTask { it.transitionId.eq("qa_decision_router").and(it.caseId.eq(useCase.stringId)) }
+            if (t) finishTask(t)
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <arc>
+    <id>a14</id>
+    <type>regular</type>
+    <sourceId>p_qa</sourceId>
+    <destinationId>qa_decision_router</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
