@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>invoice_process</id>
+  <version>1.0.0</version>
+  <initials>INV</initials>
+  <title>Invoice Registration</title>
+  <icon>receipt</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>registrant</id>
+    <title>Registrant</title>
+  </role>
+  <role>
+    <id>approver</id>
+    <title>Approver</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="text">
+    <id>inv_number</id>
+    <title>Invoice Number</title>
+  </data>
+  <data type="number">
+    <id>amount</id>
+    <title>Amount</title>
+  </data>
+  <data type="date">
+    <id>inv_date</id>
+    <title>Invoice Date</title>
+  </data>
+  <data type="file">
+    <id>inv_file</id>
+    <title>Invoice File</title>
+  </data>
+  <data type="enumeration_map">
+    <id>order_ref</id>
+    <title>Select Order</title>
+  </data>
+  <data type="enumeration_map">
+    <id>inv_decision</id>
+    <title>Invoice Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <transition>
+    <id>register</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Register Invoice</label>
+    <icon>add_circle</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>registrant</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_reg</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Details</title>
+      <dataRef>
+        <id>order_ref</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>inv_number</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>inv_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>inv_file</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="assign">
+      <id>reg_ass</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            order_ref: f.order_ref;
+            def orders = findCases { it.processIdentifier.eq("order_process") }
+            .findAll { c -> (c.activePlaces?.get("p_dash") ?: 0) > 0 }
+            .collectEntries { [(it.stringId): it.title] }
+            change order_ref options { orders }
+            ]]>
+        </action>
+      </actions>
+    </event>
+    <event type="finish">
+      <id>reg_fin</id>
+      <actions phase="post">
+        <action id="5">
+<![CDATA[
+            order_ref: f.order_ref;
+            async.run {
+            def parentCase = findCase { it._id.eq(order_ref.value) }
+            if (parentCase) {
+            def myTask = findTask { it.transitionId.eq("approve_invoice").and(it.caseId.eq(useCase.stringId)) }
+            if (myTask) {
+            def currentList = parentCase.dataSet?.get("linked_invoices")?.value ?: []
+            setData("order_dashboard", parentCase, [
+            "linked_invoices": ["value": currentList + myTask.stringId, "type": "taskRef"]
+            ])
+            }
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>approve_invoice</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Approve Invoice</label>
+    <icon>check_circle</icon>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_inv_app</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Invoice Approval</title>
+      <dataRef>
+        <id>inv_number</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>inv_file</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>inv_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_wait</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Waiting</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>register</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>register</sourceId>
+    <destinationId>p_wait</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>read</type>
+    <sourceId>p_wait</sourceId>
+    <destinationId>approve_invoice</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
