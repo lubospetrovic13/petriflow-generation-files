@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>email_processor</id>
+  <version>1.0.0</version>
+  <initials>EMP</initials>
+  <title>Internal Email Processor</title>
+  <icon>email</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>reviewer</id>
+    <title>Reviewer</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- Data Fields -->
+  <data type="text">
+    <id>sender_name</id>
+    <title>Sender Name</title>
+  </data>
+  <data type="text">
+    <id>sender_email</id>
+    <title>Sender Email Address</title>
+  </data>
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+  </data>
+  <data type="text">
+    <id>body</id>
+    <title>Email Body</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment</title>
+  </data>
+  <data type="text">
+    <id>api_key</id>
+    <title>API Key</title>
+    <value>sk-REPLACE-WITH-YOUR-KEY</value>
+  </data>
+  <data type="enumeration_map">
+    <id>ai_category</id>
+    <title>AI Category</title>
+    <options>
+      <option key="complaint">Complaint</option>
+      <option key="inquiry">Inquiry</option>
+      <option key="order">Order</option>
+      <option key="spam">Spam</option>
+      <option key="other">Other</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>extracted_entities</id>
+    <title>Extracted Entities</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>suggested_draft</id>
+    <title>Suggested Response Draft</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>final_action</id>
+    <title>Final Action</title>
+    <options>
+      <option key="reply">Reply</option>
+      <option key="forward">Forward</option>
+      <option key="archive">Archive</option>
+      <option key="escalate">Escalate</option>
+    </options>
+  </data>
+  <!-- Transitions -->
+  <transition>
+    <id>submit</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Submit Incoming Email</label>
+    <icon>file_upload</icon>
+    <assignPolicy>auto</assignPolicy>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Email Details</title>
+      <dataRef>
+        <id>sender_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>sender_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>body</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_finish</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run {
+            assignTask("classify_ai")
+            finishTask("classify_ai")
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>classify_ai</id>
+    <x>496</x>
+    <y>208</y>
+    <label>AI Classification</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ai_finish</id>
+      <actions phase="post">
+        <action id="2">
+<![CDATA[
+            api_key: f.api_key, subject: f.subject, body: f.body;
+            async.run {
+            def prompt = """
+            Analyze this email.
+            Subject: ${subject.value}
+            Body: ${body.value}
+            
+            Return JSON with:
+            - category: one of [complaint, inquiry, order, spam, other]
+            - entities: string listing names, dates, amounts
+            - draft: a professional response draft
+            """
+            
+            def conn = (java.net.HttpURLConnection) new java.net.URL("https://api.openai.com/v1/chat/completions").openConnection()
+            conn.setRequestMethod("POST")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("Authorization", "Bearer ${api_key.value}")
+            conn.setDoOutput(true)
+            conn.setConnectTimeout(15000)
+            conn.setReadTimeout(60000)
+            
+            def payload = [
+            model: "gpt-4o-mini",
+            messages: [[role: "user", content: prompt]],
+            response_format: [type: "json_object"]
+            ]
+            
+            conn.outputStream.write(groovy.json.JsonOutput.toJson(payload).getBytes("UTF-8"))
+            
+            def responseText = ""
+            try {
+            responseText = conn.inputStream.getText("UTF-8")
+            } catch (e) {
+            responseText = conn.errorStream?.getText("UTF-8") ?: '{"error":"unreachable"}'
+            }
+            
+            def json = new groovy.json.JsonSlurper().parseText(responseText)
+            def content = json?.choices?.getAt(0)?.message?.content ?: "{}"
+            def data = new groovy.json.JsonSlurper().parseText(content)
+            
+            def t = findTask { it.transitionId.eq("review_task").and(it.caseId.eq(useCase.stringId)) }
+            if (t) {
+            setData(t, [
+            ai_category: [value: data.category, type: "enumeration_map"],
+            extracted_entities: [value: data.entities, type: "text"],
+            suggested_draft: [value: data.draft, type: "text"]
+            ])
+            }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>review_task</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Review and Action</label>
+    <icon>rate_review</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>reviewer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_review</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review AI Analysis</title>
+      <dataRef>
+        <id>sender_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>sender_email</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>body</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>ai_category</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>extracted_entities</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>suggested_draft</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>final_action</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- Places -->
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>New Email</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_processing</id>
+    <x>400</x>
+    <y>208</y>
+    <label>AI Processing</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_review</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Pending Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>done</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Processed</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- Arcs -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit</sourceId>
+    <destinationId>p_processing</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_processing</sourceId>
+    <destinationId>classify_ai</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>classify_ai</sourceId>
+    <destinationId>p_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_review</sourceId>
+    <destinationId>review_task</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>review_task</sourceId>
+    <destinationId>done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
