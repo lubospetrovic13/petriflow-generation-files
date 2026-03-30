@@ -1,0 +1,1337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>procurement_workflow</id>
+  <version>1.0.0</version>
+  <initials>PO</initials>
+  <title>Purchase Order Workflow</title>
+  <icon>shopping_cart</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            status: f.status;
+            change status value { "Draft" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>submitter</id>
+    <title>Submitter</title>
+  </role>
+  <role>
+    <id>legal</id>
+    <title>Legal Reviewer</title>
+  </role>
+  <role>
+    <id>finance</id>
+    <title>Finance Reviewer</title>
+  </role>
+  <role>
+    <id>procurement_manager</id>
+    <title>Procurement Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- ═══════════════════════════ DATA FIELDS ═══════════════════════════ -->
+  <data type="text">
+    <id>vendor_name</id>
+    <title>Vendor Name</title>
+  </data>
+  <data type="number">
+    <id>amount</id>
+    <title>Amount</title>
+  </data>
+  <data type="enumeration_map">
+    <id>category</id>
+    <title>Category</title>
+    <options>
+      <option key="software">Software</option>
+      <option key="hardware">Hardware</option>
+      <option key="services">Services</option>
+      <option key="other">Other</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>business_justification</id>
+    <title>Business Justification</title>
+  </data>
+  <data type="text">
+    <id>description</id>
+    <title>Detailed Description</title>
+  </data>
+  <data type="file">
+    <id>supporting_doc</id>
+    <title>Supporting Document</title>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Current Status</title>
+  </data>
+  <data type="text">
+    <id>submitter_email</id>
+    <title>Submitter Email</title>
+  </data>
+  <data type="enumeration_map">
+    <id>legal_decision</id>
+    <title>Legal Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>legal_comment</id>
+    <title>Legal Review Comment</title>
+  </data>
+  <data type="enumeration_map">
+    <id>finance_decision</id>
+    <title>Finance Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>finance_comment</id>
+    <title>Finance Review Comment</title>
+  </data>
+  <data type="enumeration_map">
+    <id>final_decision</id>
+    <title>Final Decision</title>
+    <options>
+      <option key="issue">Issue PO</option>
+      <option key="reject">Reject PO</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>final_comment</id>
+    <title>Final Decision Comment</title>
+  </data>
+  <!-- Routing fields -->
+  <data type="number">
+    <id>go_approved</id>
+    <title>Go Approved</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_rejected</id>
+    <title>Go Rejected</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_final_issue</id>
+    <title>Go Final Issue</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_final_reject</id>
+    <title>Go Final Reject</title>
+    <init>0</init>
+  </data>
+  <!-- ═══════════════════════════ TRANSITIONS ═══════════════════════════ -->
+  <transition>
+    <id>t_submit</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submit Purchase Order</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Purchase Order Details</title>
+      <dataRef>
+        <id>vendor_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>category</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>submitter_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>business_justification</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>supporting_doc</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_submit_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status, submitter_email: f.submitter_email,
+            legal_decision: f.legal_decision, finance_decision: f.finance_decision,
+            legal_comment: f.legal_comment, finance_comment: f.finance_comment;
+            change status value { "Under Review" }
+            change legal_decision  value { null }
+            change finance_decision value { null }
+            change legal_comment   value { null }
+            change finance_comment value { null }
+            if (!submitter_email.value) {
+            change submitter_email value { userService.loggedOrSystem.email }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            async.run {
+            assignTask("t_split")
+            finishTask("t_split")
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- AND-split system task -->
+  <transition>
+    <id>t_split</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Split</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+  </transition>
+  <!-- Legal Review -->
+  <transition>
+    <id>t_legal_review</id>
+    <x>592</x>
+    <y>80</y>
+    <label>Legal Review</label>
+    <icon>gavel</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>legal</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_legal</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Legal Compliance Review</title>
+      <dataRef>
+        <id>vendor_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>category</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>business_justification</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>supporting_doc</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>legal_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <event type="set">
+          <id>legal_decision_set</id>
+          <actions phase="post">
+            <action id="4">
+<![CDATA[
+                legal_decision: f.legal_decision, legal_comment: f.legal_comment,
+                t_legal_review: t.t_legal_review;
+                if (legal_decision.value == "reject") {
+                make legal_comment, required on t_legal_review when { true }
+                } else {
+                make legal_comment, optional on t_legal_review when { true }
+                }
+                ]]>
+            </action>
+          </actions>
+        </event>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_legal_finish</id>
+      <actions phase="post">
+        <action id="5">
+<![CDATA[
+            async.run {
+            def t = findTask { it.transitionId.eq("t_evaluate").and(it.caseId.eq(useCase.stringId)) }
+            if (t) { assignTask(t, userService.loggedOrSystem); finishTask(t, userService.loggedOrSystem) }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Finance Review -->
+  <transition>
+    <id>t_finance_review</id>
+    <x>592</x>
+    <y>336</y>
+    <label>Finance Review</label>
+    <icon>account_balance</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>finance</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_finance</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Finance Budget Review</title>
+      <dataRef>
+        <id>vendor_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>category</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>business_justification</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>supporting_doc</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>finance_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <event type="set">
+          <id>finance_decision_set</id>
+          <actions phase="post">
+            <action id="6">
+<![CDATA[
+                finance_decision: f.finance_decision, finance_comment: f.finance_comment,
+                t_finance_review: t.t_finance_review;
+                if (finance_decision.value == "reject") {
+                make finance_comment, required on t_finance_review when { true }
+                } else {
+                make finance_comment, optional on t_finance_review when { true }
+                }
+                ]]>
+            </action>
+          </actions>
+        </event>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_finance_finish</id>
+      <actions phase="post">
+        <action id="7">
+<![CDATA[
+            async.run {
+            def t = findTask { it.transitionId.eq("t_evaluate").and(it.caseId.eq(useCase.stringId)) }
+            if (t) { assignTask(t, userService.loggedOrSystem); finishTask(t, userService.loggedOrSystem) }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Evaluate system task — fires when both tokens arrive in p_join (mult=2) -->
+  <transition>
+    <id>t_evaluate</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Evaluate Reviews</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>t_evaluate_finish</id>
+      <actions phase="pre">
+        <action id="8">
+<![CDATA[
+            go_approved: f.go_approved, go_rejected: f.go_rejected,
+            legal_decision: f.legal_decision, finance_decision: f.finance_decision,
+            status: f.status, submitter_email: f.submitter_email,
+            legal_comment: f.legal_comment, finance_comment: f.finance_comment;
+            def bothApproved = (legal_decision.value == "approve" && finance_decision.value == "approve")
+            if (bothApproved) {
+            change go_approved value { 1 }
+            change go_rejected value { 0 }
+            change status value { "Pending Final Decision" }
+            } else {
+            change go_approved value { 0 }
+            change go_rejected value { 1 }
+            def reasons = []
+            if (legal_decision.value == "reject")   reasons << "Legal: ${legal_comment.value ?: 'No comment.'}"
+            if (finance_decision.value == "reject")  reasons << "Finance: ${finance_comment.value ?: 'No comment.'}"
+            change status value { "Rejected — Returned for Revision" }
+            sendEmail(
+            [submitter_email.value],
+            "Purchase Order Rejected — Revision Required",
+            "Your purchase order was rejected and returned for revision.\n\n${reasons.join('\n\n')}\n\nPlease revise and resubmit."
+            )
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Reject handler system task — resets decisions and loops back -->
+  <transition>
+    <id>t_reject_handler</id>
+    <x>976</x>
+    <y>336</y>
+    <label>Reset and Loop</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>t_reject_handler_finish</id>
+      <actions phase="pre">
+        <action id="9">
+<![CDATA[
+            legal_decision: f.legal_decision, finance_decision: f.finance_decision,
+            legal_comment: f.legal_comment, finance_comment: f.finance_comment,
+            go_approved: f.go_approved, go_rejected: f.go_rejected;
+            change legal_decision   value { null }
+            change finance_decision value { null }
+            change legal_comment    value { null }
+            change finance_comment  value { null }
+            change go_approved value { 0 }
+            change go_rejected value { 0 }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Procurement Manager Final Decision -->
+  <transition>
+    <id>t_final_decision</id>
+    <x>976</x>
+    <y>80</y>
+    <label>Final Decision</label>
+    <icon>assignment_turned_in</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>procurement_manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_final</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Procurement Manager Decision</title>
+      <dataRef>
+        <id>vendor_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>category</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>business_justification</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>supporting_doc</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>final_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>final_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_final_finish</id>
+      <actions phase="pre">
+        <action id="10">
+<![CDATA[
+            go_final_issue: f.go_final_issue, go_final_reject: f.go_final_reject,
+            final_decision: f.final_decision, status: f.status;
+            if (final_decision.value == "issue") {
+            change go_final_issue  value { 1 }
+            change go_final_reject value { 0 }
+            change status value { "PO Issued" }
+            } else {
+            change go_final_issue  value { 0 }
+            change go_final_reject value { 1 }
+            change status value { "PO Rejected by Manager" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="11">
+<![CDATA[
+            final_decision: f.final_decision, submitter_email: f.submitter_email,
+            vendor_name: f.vendor_name, amount: f.amount, final_comment: f.final_comment;
+            if (final_decision.value == "issue") {
+            sendEmail(
+            [submitter_email.value],
+            "Purchase Order Issued",
+            "Your purchase order for ${vendor_name.value} (Amount: ${amount.value}) has been approved and issued.\n\nComment: ${final_comment.value ?: 'No additional comments.'}"
+            )
+            } else {
+            sendEmail(
+            [submitter_email.value],
+            "Purchase Order Rejected by Manager",
+            "Your purchase order for ${vendor_name.value} has been rejected by the Procurement Manager.\n\nComment: ${final_comment.value ?: 'No comment provided.'}"
+            )
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- Persistent Status View -->
+  <transition>
+    <id>t_status_view</id>
+    <x>208</x>
+    <y>16</y>
+    <label>My Request Status</label>
+    <icon>info</icon>
+    <priority>2</priority>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Request Status</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>vendor_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>amount</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>category</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>legal_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>finance_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>final_decision</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>final_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- ═══════════════════════════ PLACES ═══════════════════════════ -->
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_submitted</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Submitted</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_legal_q</id>
+    <x>496</x>
+    <y>80</y>
+    <label>Legal Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_finance_q</id>
+    <x>496</x>
+    <y>336</y>
+    <label>Finance Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_join</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Reviews Join</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_approved</id>
+    <x>880</x>
+    <y>80</y>
+    <label>Both Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_any_rejected</id>
+    <x>880</x>
+    <y>336</y>
+    <label>Any Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_issued</id>
+    <x>1168</x>
+    <y>80</y>
+    <label>Issued</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_po_rejected</id>
+    <x>1168</x>
+    <y>336</y>
+    <label>PO Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>112</x>
+    <y>16</y>
+    <label>Status View</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ═══════════════════════════ ARCS ═══════════════════════════ -->
+  <!-- Start → Submit -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>t_submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_submitted</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Status view -->
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>t_status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- AND-split -->
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_submitted</sourceId>
+    <destinationId>t_split</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>t_split</sourceId>
+    <destinationId>p_legal_q</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>t_split</sourceId>
+    <destinationId>p_finance_q</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Legal branch → join -->
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>p_legal_q</sourceId>
+    <destinationId>t_legal_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>t_legal_review</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Finance branch → join -->
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>p_finance_q</sourceId>
+    <destinationId>t_finance_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a11</id>
+    <type>regular</type>
+    <sourceId>t_finance_review</sourceId>
+    <destinationId>p_join</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- AND-join → evaluate (requires both tokens) -->
+  <arc>
+    <id>a12</id>
+    <type>regular</type>
+    <sourceId>p_join</sourceId>
+    <destinationId>t_evaluate</destinationId>
+    <multiplicity>2</multiplicity>
+  </arc>
+  <!-- Evaluate → route -->
+  <arc>
+    <id>a13</id>
+    <type>regular</type>
+    <sourceId>t_evaluate</sourceId>
+    <destinationId>p_approved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approved</reference>
+  </arc>
+  <arc>
+    <id>a14</id>
+    <type>regular</type>
+    <sourceId>t_evaluate</sourceId>
+    <destinationId>p_any_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_rejected</reference>
+  </arc>
+  <!-- Approved → Final Decision -->
+  <arc>
+    <id>a15</id>
+    <type>regular</type>
+    <sourceId>p_approved</sourceId>
+    <destinationId>t_final_decision</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a16</id>
+    <type>regular</type>
+    <sourceId>t_final_decision</sourceId>
+    <destinationId>p_issued</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_final_issue</reference>
+  </arc>
+  <arc>
+    <id>a17</id>
+    <type>regular</type>
+    <sourceId>t_final_decision</sourceId>
+    <destinationId>p_po_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_final_reject</reference>
+  </arc>
+  <!-- Rejected → Reset and loop back -->
+  <arc>
+    <id>a18</id>
+    <type>regular</type>
+    <sourceId>p_any_rejected</sourceId>
+    <destinationId>t_reject_handler</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a19</id>
+    <type>regular</type>
+    <sourceId>t_reject_handler</sourceId>
+    <destinationId>p_start</destinationId>
+    <multiplicity>1</multiplicity>
+    <breakpoint>
+      <x>976</x>
+      <y>480</y>
+    </breakpoint>
+    <breakpoint>
+      <x>112</x>
+      <y>480</y>
+    </breakpoint>
+  </arc>
+</document>
