@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>email_processing</id>
+  <version>1.0.0</version>
+  <initials>EML</initials>
+  <title>Email Processing Workflow</title>
+  <icon>email</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            api_key: f.api_key;
+            change api_key value { "sk-YOUR-KEY-HERE" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>submitter</id>
+    <title>Submitter</title>
+  </role>
+  <role>
+    <id>reviewer</id>
+    <title>Reviewer</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <!-- Email input fields -->
+  <data type="text">
+    <id>sender_name</id>
+    <title>Sender Name</title>
+  </data>
+  <data type="text">
+    <id>sender_email</id>
+    <title>Sender Email</title>
+  </data>
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+  </data>
+  <data type="text">
+    <id>email_body</id>
+    <title>Email Body</title>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment</title>
+  </data>
+  <!-- AI result fields -->
+  <data type="enumeration_map">
+    <id>category</id>
+    <title>AI Category</title>
+    <options>
+      <option key="complaint">Complaint</option>
+      <option key="inquiry">Inquiry</option>
+      <option key="order">Order</option>
+      <option key="spam">Spam</option>
+      <option key="other">Other</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>extracted_entities</id>
+    <title>Extracted Entities</title>
+  </data>
+  <data type="text">
+    <id>response_draft</id>
+    <title>Response Draft</title>
+  </data>
+  <!-- Review action -->
+  <data type="enumeration_map">
+    <id>final_action</id>
+    <title>Final Action</title>
+    <options>
+      <option key="reply">Reply</option>
+      <option key="forward">Forward</option>
+      <option key="archive">Archive</option>
+      <option key="escalate">Escalate</option>
+    </options>
+  </data>
+  <!-- Status for case colour -->
+  <data type="text">
+    <id>status</id>
+    <title>Status</title>
+  </data>
+  <!-- Hidden API key -->
+  <data type="text">
+    <id>api_key</id>
+    <title>API Key</title>
+  </data>
+  <!-- Routing flags -->
+  <data type="number">
+    <id>go_classify</id>
+    <title>Go Classify</title>
+    <init>0</init>
+  </data>
+  <!-- ═══════════════════════════════════════════════
+       TRANSITIONS
+       ═══════════════════════════════════════════════ -->
+  <!-- T1 — Submit email -->
+  <transition>
+    <id>t_submit</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Submit Email</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Incoming Email</title>
+      <dataRef>
+        <id>sender_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>sender_email</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>email_body</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>4</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>optional</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>api_key</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>7</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_submit_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status;
+            change status value { "Pending Classification" }
+            changeCaseProperty("color").about { "blue" }
+            changeCaseProperty("title").about { useCase.title + " — " + useCase.stringId }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            async.run {
+            def t = findTask { it.transitionId.eq("t_classify").and(it.caseId.eq(useCase.stringId)) }
+            if (t) { assignTask(t, userService.loggedOrSystem); finishTask(t, userService.loggedOrSystem) }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- T2 — LLM Classification (system task) -->
+  <transition>
+    <id>t_classify</id>
+    <x>688</x>
+    <y>208</y>
+    <label>LLM Classification</label>
+    <icon>smart_toy</icon>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>t_classify_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            api_key: f.api_key, subject: f.subject, email_body: f.email_body,
+            category: f.category, extracted_entities: f.extracted_entities, response_draft: f.response_draft,
+            status: f.status;
+            
+            def prompt = """You are an email processing assistant. Analyse the following email and respond with a JSON object containing exactly three keys:
+            1. "category": one of Complaint, Inquiry, Order, Spam, Other
+            2. "entities": a plain text summary of key entities (names, dates, amounts, organisations)
+            3. "draft": a suggested professional response to the email
+            
+            Email subject: ${subject.value}
+            
+            Email body:
+            ${email_body.value}
+            
+            Respond with only the JSON object, no markdown fences."""
+            
+            def result = "{}"
+            try {
+            def conn = (java.net.HttpURLConnection) new java.net.URL("https://api.openai.com/v1/chat/completions").openConnection()
+            conn.setRequestMethod("POST")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("Authorization", "Bearer ${api_key.value}")
+            conn.setDoOutput(true)
+            conn.setConnectTimeout(20000)
+            conn.setReadTimeout(60000)
+            def payload = groovy.json.JsonOutput.toJson([
+            model: "gpt-4o-mini",
+            messages: [[role: "user", content: prompt]]
+            ])
+            conn.outputStream.write(payload.getBytes("UTF-8"))
+            try { result = conn.inputStream.getText("UTF-8") }
+            catch (e) { result = conn.errorStream?.getText("UTF-8") ?: '{"error":"unreachable"}' }
+            } catch (ex) {
+            result = '{"error":"' + ex.message + '"}'
+            }
+            
+            def content = ""
+            try {
+            def parsed = new groovy.json.JsonSlurper().parseText(result)
+            content = parsed?.choices?.getAt(0)?.message?.content ?: "{}"
+            } catch (ex) {
+            content = "{}"
+            }
+            
+            def normalized = content.replaceAll('(?m)^```(?:json)?\\s*', '').replaceAll('(?m)^```\\s*$', '').trim()
+            
+            def parsed2 = [:]
+            try { parsed2 = new groovy.json.JsonSlurper().parseText(normalized) } catch (ex) { parsed2 = [:] }
+            
+            def rawCat = (parsed2["category"] ?: "other").toString().toLowerCase().trim()
+            def validCats = ["complaint", "inquiry", "order", "spam", "other"]
+            def finalCat = validCats.contains(rawCat) ? rawCat : "other"
+            
+            change category value { finalCat }
+            change extracted_entities value { (parsed2["entities"] ?: "No entities extracted.").toString() }
+            change response_draft value { (parsed2["draft"] ?: "No draft generated.").toString() }
+            change status value { "Pending Review" }
+            changeCaseProperty("color").about { "orange" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- T3 — Reviewer task -->
+  <transition>
+    <id>t_review</id>
+    <x>1072</x>
+    <y>208</y>
+    <label>Review and Respond</label>
+    <icon>rate_review</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>reviewer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_review</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Email Review</title>
+      <!-- Original email (read-only) -->
+      <dataRef>
+        <id>sender_name</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>sender_email</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>email_body</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>4</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <!-- AI results -->
+      <dataRef>
+        <id>category</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>7</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>extracted_entities</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>7</y>
+          <rows>2</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>response_draft</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>9</y>
+          <rows>4</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <!-- Final action -->
+      <dataRef>
+        <id>final_action</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>13</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>api_key</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>14</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>t_review_finish</id>
+      <actions phase="pre">
+        <action id="5">
+<![CDATA[
+            status: f.status, final_action: f.final_action;
+            def actionLabel = [reply: "Replied", forward: "Forwarded", archive: "Archived", escalate: "Escalated"]
+            change status value { actionLabel[final_action.value] ?: "Closed" }
+            changeCaseProperty("color").about { "green" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <!-- ═══════════════════════════════════════════════
+       PLACES
+       ═══════════════════════════════════════════════ -->
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_submitted</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Submitted</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_classified</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Classified</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done</id>
+    <x>1264</x>
+    <y>208</y>
+    <label>Done</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- ═══════════════════════════════════════════════
+       ARCS
+       ═══════════════════════════════════════════════ -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>t_submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>t_submit</sourceId>
+    <destinationId>p_submitted</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_submitted</sourceId>
+    <destinationId>t_classify</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>t_classify</sourceId>
+    <destinationId>p_classified</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_classified</sourceId>
+    <destinationId>t_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>t_review</sourceId>
+    <destinationId>p_done</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
