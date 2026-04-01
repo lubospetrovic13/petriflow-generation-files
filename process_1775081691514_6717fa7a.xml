@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<place><id>start</id><tokens>1</tokens></place>
+<place><id>pending</id><tokens>0</tokens></place>
+<place><id>done</id><tokens>0</tokens></place>
+<transition><id>submit</id><label>Submit</label></transition>
+<transition><id>approve</id><label>Approve</label></transition>
+<arc><id>a1</id><type>regular</type><sourceId>start</sourceId><destinationId>submit</destinationId><multiplicity>1</multiplicity></arc>
+<arc><id>a2</id><type>regular</type><sourceId>submit</sourceId><destinationId>pending</destinationId><multiplicity>1</multiplicity></arc>
+<arc><id>a3</id><type>regular</type><sourceId>pending</sourceId><destinationId>approve</destinationId><multiplicity>1</multiplicity></arc>
+<arc><id>a4</id><type>regular</type><sourceId>approve</sourceId><destinationId>done</destinationId><multiplicity>1</multiplicity></arc>
