@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>hr_leave_request</id>
+  <version>1.0.0</version>
+  <initials>HLR</initials>
+  <title>HR Leave Request</title>
+  <icon>event_note</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>employee</id>
+    <title>Employee</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>hr_officer</id>
+    <title>HR Officer</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="enumeration_map">
+    <id>leave_type</id>
+    <title>Leave Type</title>
+    <options>
+      <option key="annual">Annual Leave</option>
+      <option key="sick">Sick Leave</option>
+      <option key="personal">Personal Leave</option>
+    </options>
+  </data>
+  <data type="date">
+    <id>start_date</id>
+    <title>Start Date</title>
+  </data>
+  <data type="date">
+    <id>end_date</id>
+    <title>End Date</title>
+  </data>
+  <data type="text">
+    <id>reason</id>
+    <title>Reason for Leave</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="file">
+    <id>attachment</id>
+    <title>Attachment (e.g. Medical Certificate)</title>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Current Status</title>
+    <init>Draft</init>
+  </data>
+  <data type="text">
+    <id>manager_comment</id>
+    <title>Manager Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>hr_comment</id>
+    <title>HR Comment</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>manager_decision</id>
+    <title>Manager Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="enumeration_map">
+    <id>hr_decision</id>
+    <title>HR Decision</title>
+    <options>
+      <option key="approve">Confirm</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="number">
+    <id>go_hr</id>
+    <title>Go to HR</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_remake_m</id>
+    <title>Manager Rejection Loop</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_done</id>
+    <title>Go to Done</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_remake_hr</id>
+    <title>HR Rejection Loop</title>
+    <init>0</init>
+  </data>
+  <transition>
+    <id>submit_request</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submit Leave Request</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>submit_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Request Details</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reason</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>attachment</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            status: f.status;
+            change status value { "Pending Manager Approval" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>manager_review</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>rate_review</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>manager_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Decision</title>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>start_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>end_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>manager_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            decision: f.manager_decision, go_hr: f.go_hr, go_remake: f.go_remake_m, status: f.status;
+            if (decision.value == "approve") {
+            change go_hr value { 1 }; change go_remake value { 0 }
+            change status value { "Pending HR Verification" }
+            } else {
+            change go_hr value { 0 }; change go_remake value { 1 }
+            change status value { "Rejected by Manager - Revision Required" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            decision: f.manager_decision, comment: f.manager_comment;
+            if (decision.value == "reject") {
+            sendEmail([userService.loggedOrSystem.email], "Leave Request Rejected", "Your manager has rejected your request with comment: " + comment.value)
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>hr_review</id>
+    <x>976</x>
+    <y>208</y>
+    <label>HR Final Approval</label>
+    <icon>verified_user</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>hr_officer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>hr_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>HR Verification</title>
+      <dataRef>
+        <id>hr_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>hr_finish</id>
+      <actions phase="pre">
+        <action id="4">
+<![CDATA[
+            decision: f.hr_decision, go_done: f.go_done, go_remake: f.go_remake_hr, status: f.status;
+            if (decision.value == "approve") {
+            change go_done value { 1 }; change go_remake value { 0 }
+            change status value { "Approved" }
+            } else {
+            change go_done value { 0 }; change go_remake value { 1 }
+            change status value { "Rejected by HR - Revision Required" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="5">
+<![CDATA[
+            decision: f.hr_decision, comment: f.hr_comment, start: f.start_date, end: f.end_date;
+            if (decision.value == "approve") {
+            sendEmail([userService.loggedOrSystem.email], "Leave Request Approved", "Your leave from " + start.value + " to " + end.value + " has been approved.")
+            } else {
+            sendEmail([userService.loggedOrSystem.email], "Leave Request Rejected by HR", "HR has rejected your request with comment: " + comment.value)
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>detail_view</id>
+    <x>400</x>
+    <y>16</y>
+    <label>Request Status and History</label>
+    <icon>info</icon>
+    <priority>2</priority>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>detail_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Current Status</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>hr_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Draft</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_manager</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Manager Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_hr</id>
+    <x>784</x>
+    <y>208</y>
+    <label>HR Queue</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_done</id>
+    <x>1168</x>
+    <y>208</y>
+    <label>Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_detail</id>
+    <x>208</x>
+    <y>16</y>
+    <label>Persistent View</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>submit_request</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_request</sourceId>
+    <destinationId>p_manager</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_manager</sourceId>
+    <destinationId>manager_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_hr</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_hr</reference>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>manager_review</sourceId>
+    <destinationId>p_start</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_remake_m</reference>
+    <breakpoint>
+      <x>592</x>
+      <y>368</y>
+    </breakpoint>
+    <breakpoint>
+      <x>112</x>
+      <y>368</y>
+    </breakpoint>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>p_hr</sourceId>
+    <destinationId>hr_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>hr_review</sourceId>
+    <destinationId>p_done</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_done</reference>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>hr_review</sourceId>
+    <destinationId>p_start</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_remake_hr</reference>
+    <breakpoint>
+      <x>976</x>
+      <y>432</y>
+    </breakpoint>
+    <breakpoint>
+      <x>112</x>
+      <y>432</y>
+    </breakpoint>
+  </arc>
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>submit_request</sourceId>
+    <destinationId>p_detail</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a10</id>
+    <type>read</type>
+    <sourceId>p_detail</sourceId>
+    <destinationId>detail_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
