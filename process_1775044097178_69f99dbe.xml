@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>order</id>
+  <version>1.0.0</version>
+  <initials>ORD</initials>
+  <title>Order Process</title>
+  <icon>assignment</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>submitter</id>
+    <title>Submitter</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="text">
+    <id>subject</id>
+    <title>Subject</title>
+    <init/>
+    <value/>
+  </data>
+  <data type="text">
+    <id>supplier</id>
+    <title>Supplier Name</title>
+    <init/>
+    <value/>
+  </data>
+  <data type="date">
+    <id>order_date</id>
+    <title>Order Date</title>
+    <init/>
+  </data>
+  <data type="text">
+    <id>notes</id>
+    <title>Notes</title>
+    <init/>
+    <value/>
+  </data>
+  <data type="enumeration_map">
+    <id>order_status</id>
+    <title>Status</title>
+    <options>
+      <option key="draft">Draft</option>
+      <option key="pending_review">Pending Review</option>
+      <option key="approved">Approved</option>
+      <option key="rejected">Rejected</option>
+      <option key="open">Open</option>
+    </options>
+    <init>draft</init>
+  </data>
+  <data type="text">
+    <id>manager_comment</id>
+    <title>Manager Comment</title>
+    <init/>
+    <value/>
+  </data>
+  <data type="number">
+    <id>go_approve</id>
+    <title>Go Approve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject</id>
+    <title>Go Reject</title>
+    <init>0</init>
+  </data>
+  <data type="taskRef">
+    <id>linked_invoices</id>
+    <title>Linked Invoices</title>
+  </data>
+  <data type="text">
+    <id>refresh_trigger</id>
+    <title>Refresh Trigger</title>
+    <init/>
+    <value/>
+  </data>
+  <transition>
+    <id>submit_order</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submit Order</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>order_info</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Order Information</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>supplier</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>order_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_order_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            order_status: f.order_status;
+            change order_status value { "pending_review" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>review_order</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Review Order</label>
+    <icon>rate_review</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>review_info</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>supplier</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>order_date</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>notes</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>4</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>order_status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>5</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>go_approve</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>go_reject</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>6</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>review_order_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            go_approve: f.go_approve, go_reject: f.go_reject, order_status: f.order_status;
+            // Approve or reject based on manager_comment content (simulate decision)
+            def approve = (manager_comment.value?.toLowerCase()?.contains("approve") ?: false)
+            if (approve) {
+            change go_approve value { 1 }; change go_reject value { 0 }
+            change order_status value { "approved" }
+            } else {
+            change go_approve value { 0 }; change go_reject value { 1 }
+            change order_status value { "rejected" }
+            }
+            ]]>
+        </action>
+      </actions>
+      <actions phase="post">
+        <action id="3">
+<![CDATA[
+            go_approve: f.go_approve, go_reject: f.go_reject;
+            if (go_approve.value == 1) {
+            async.run { assignTask("open_order"); finishTask("open_order") }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>open_order</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Open Order</label>
+    <icon>link</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <!-- No dataGroup: system task, fires automatically -->
+    <event type="finish">
+      <id>open_order_finish</id>
+      <actions phase="post">
+        <action id="4">
+<![CDATA[
+            // No-op, just moves token to p_open
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>order_panel</id>
+    <x>784</x>
+    <y>208</y>
+    <label>Order Panel</label>
+    <icon>dashboard</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>panel_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Order Status and Invoices</title>
+      <dataRef>
+        <id>order_status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>manager_comment</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+      <dataRef>
+        <id>linked_invoices</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>refresh_trigger</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <event type="set">
+          <id>refresh_trigger_set</id>
+          <actions phase="post">
+            <action id="5">
+<![CDATA[
+                linked_invoices: f.linked_invoices;
+                // Refresh the embedded invoice panel by reloading linked invoice tasks
+                change linked_invoices value {
+                findTasks { it.caseId.eq(useCase.stringId).and(it.transitionId.eq("invoice_approval")) }?.collect { it.stringId }
+                }
+                ]]>
+            </action>
+          </actions>
+        </event>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>resubmit_order</id>
+    <x>400</x>
+    <y>400</y>
+    <label>Resubmit Order</label>
+    <icon>edit</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>resubmit_group</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Resubmit Order</title>
+      <dataRef>
+        <id>subject</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>supplier</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>order_date</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>3</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+        <component>
+          <name>textarea</name>
+        </component>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>resubmit_order_finish</id>
+      <actions phase="pre">
+        <action id="6">
+<![CDATA[
+            order_status: f.order_status;
+            change order_status value { "pending_review" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_review</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Pending Review</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_resubmit</id>
+    <x>304</x>
+    <y>400</y>
+    <label>Resubmit</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_open</id>
+    <x>976</x>
+    <y>208</y>
+    <label>Open</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_panel</id>
+    <x>1168</x>
+    <y>208</y>
+    <label>Panel</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_order</sourceId>
+    <destinationId>p_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_review</sourceId>
+    <destinationId>review_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>review_order</sourceId>
+    <destinationId>p_open</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approve</reference>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>review_order</sourceId>
+    <destinationId>p_resubmit</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject</reference>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>p_resubmit</sourceId>
+    <destinationId>resubmit_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>resubmit_order</sourceId>
+    <destinationId>p_review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>p_open</sourceId>
+    <destinationId>open_order</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>open_order</sourceId>
+    <destinationId>p_panel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a10</id>
+    <type>read</type>
+    <sourceId>p_panel</sourceId>
+    <destinationId>order_panel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
