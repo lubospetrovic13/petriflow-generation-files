@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>leave_request</id>
+  <version>1.0.0</version>
+  <initials>LR</initials>
+  <title>Leave Request and Approval</title>
+  <icon>event_note</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>create_case</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            changeCaseProperty("title").about { "New Leave Request" }
+            changeCaseProperty("color").about { "blue" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>employee</id>
+    <title>Employee</title>
+  </role>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <data type="date">
+    <id>date_from</id>
+    <title>Date From</title>
+  </data>
+  <data type="date">
+    <id>date_to</id>
+    <title>Date To</title>
+  </data>
+  <data type="enumeration_map">
+    <id>leave_type</id>
+    <title>Type of Leave</title>
+    <options>
+      <option key="vacation">Vacation</option>
+      <option key="sick">Sick Leave</option>
+      <option key="personal">Personal Reasons</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>note</id>
+    <title>Note</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>decision</id>
+    <title>Manager Decision</title>
+    <options>
+      <option key="approve">Approve</option>
+      <option key="reject">Reject</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Current Status</title>
+    <value>Draft</value>
+  </data>
+  <data type="number">
+    <id>go_approve</id>
+    <title>Go Approve</title>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_reject</id>
+    <title>Go Reject</title>
+    <init>0</init>
+  </data>
+  <transition>
+    <id>submit</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Submit Request</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>employee</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Request Details</title>
+      <dataRef>
+        <id>date_from</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>date_to</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>leave_type</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>note</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            status: f.status;
+            change status value { "Pending Approval" }
+            changeCaseProperty("title").about { "Leave Request - Pending" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>review</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Manager Review</label>
+    <icon>rate_review</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_review</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Review Decision</title>
+      <dataRef>
+        <id>date_from</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>date_to</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>1</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>review_finish</id>
+      <actions phase="pre">
+        <action id="3">
+<![CDATA[
+            decision: f.decision, go_approve: f.go_approve, go_reject: f.go_reject, status: f.status;
+            if (decision.value == "approve") {
+            change go_approve value { 1 }
+            change go_reject value { 0 }
+            change status value { "Approved" }
+            changeCaseProperty("color").about { "green" }
+            } else {
+            change go_approve value { 0 }
+            change go_reject value { 1 }
+            change status value { "Rejected" }
+            changeCaseProperty("color").about { "red" }
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_pending</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Pending</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_approved</id>
+    <x>880</x>
+    <y>112</y>
+    <label>Approved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_rejected</id>
+    <x>880</x>
+    <y>304</y>
+    <label>Rejected</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit</sourceId>
+    <destinationId>p_pending</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>p_pending</sourceId>
+    <destinationId>review</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>review</sourceId>
+    <destinationId>p_approved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_approve</reference>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>review</sourceId>
+    <destinationId>p_rejected</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_reject</reference>
+  </arc>
+</document>
