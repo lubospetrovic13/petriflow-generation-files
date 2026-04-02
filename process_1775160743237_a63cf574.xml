@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataRef>
+  <id>debug_raw</id>
+  <logic>
+    <behavior>visible</behavior>
+  </logic>
+  <layout>
+    <x>0</x>
+    <y>15</y>
+    <rows>4</rows>
+    <cols>2</cols>
+    <template>material</template>
+    <appearance>outline</appearance>
+  </layout>
+  <component>
+    <name>textarea</name>
+  </component>
+</dataRef>
