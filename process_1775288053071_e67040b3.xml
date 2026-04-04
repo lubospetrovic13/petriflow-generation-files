@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>bug_tracker</id>
+  <version>1.0.0</version>
+  <initials>BT</initials>
+  <title>Bug Tracking System</title>
+  <icon>bug_report</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>reporter</id>
+    <title>Reporter</title>
+  </role>
+  <role>
+    <id>triage</id>
+    <title>Triage Team</title>
+  </role>
+  <role>
+    <id>developer</id>
+    <title>Developer</title>
+  </role>
+  <role>
+    <id>qa</id>
+    <title>QA Engineer</title>
+  </role>
+  <!-- Data Fields -->
+  <data type="text">
+    <id>title</id>
+    <title>Bug Title</title>
+  </data>
+  <data type="text">
+    <id>description</id>
+    <title>Description</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>steps</id>
+    <title>Steps to Reproduce</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>severity</id>
+    <title>Severity Level</title>
+    <options>
+      <option key="critical">Critical</option>
+      <option key="high">High</option>
+      <option key="medium">Medium</option>
+      <option key="low">Low</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>component</id>
+    <title>Affected Component</title>
+  </data>
+  <data type="file">
+    <id>screenshot</id>
+    <title>Screenshot Attachment</title>
+  </data>
+  <data type="enumeration_map">
+    <id>priority</id>
+    <title>Internal Priority</title>
+    <options>
+      <option key="p1">P1 - Immediate</option>
+      <option key="p2">P2 - Urgent</option>
+      <option key="p3">P3 - Normal</option>
+      <option key="p4">P4 - Low</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>triage_notes</id>
+    <title>Triage Notes</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="user">
+    <id>assigned_developer</id>
+    <title>Assigned Developer</title>
+  </data>
+  <data type="text">
+    <id>fix_description</id>
+    <title>Fix Description</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="enumeration_map">
+    <id>qa_decision</id>
+    <title>QA Verification</title>
+    <options>
+      <option key="pass">Pass - Resolve Bug</option>
+      <option key="fail">Fail - Return to Developer</option>
+    </options>
+  </data>
+  <data type="text">
+    <id>qa_feedback</id>
+    <title>QA Rejection Feedback</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="text">
+    <id>status</id>
+    <title>Current Status</title>
+    <init>Draft</init>
+  </data>
+  <data type="number">
+    <id>go_resolve</id>
+    <init>0</init>
+  </data>
+  <data type="number">
+    <id>go_rework</id>
+    <init>0</init>
+  </data>
+  <!-- Transitions -->
+  <transition>
+    <id>submit_bug</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Submit Bug Report</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>reporter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Bug Details</title>
+      <dataRef>
+        <id>title</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>severity</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>steps</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>component</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>screenshot</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>sub_fin</id>
+      <actions phase="pre">
+        <action id="1">status: f.status;
+                    change status value { "Triage Pending" }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>triage_bug</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Triage and Assign</label>
+    <icon>assignment_ind</icon>
+    <roleRef>
+      <id>triage</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_triage</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Triage Information</title>
+      <dataRef>
+        <id>title</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>severity</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>priority</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>assigned_developer</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>triage_notes</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>tri_fin</id>
+      <actions phase="pre">
+        <action id="2">status: f.status;
+                    change status value { "In Development" }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>fix_bug</id>
+    <x>496</x>
+    <y>208</y>
+    <label>Fix Bug</label>
+    <icon>build</icon>
+    <roleRef>
+      <id>developer</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_fix</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Development Fix</title>
+      <dataRef>
+        <id>title</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>qa_feedback</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>fix_description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>fix_fin</id>
+      <actions phase="pre">
+        <action id="3">status: f.status;
+                    change status value { "QA Verification" }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>verify_fix</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Verify Fix</label>
+    <icon>fact_check</icon>
+    <roleRef>
+      <id>qa</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_verify</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>QA Verification</title>
+      <dataRef>
+        <id>fix_description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>qa_decision</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>qa_feedback</id>
+        <logic>
+          <behavior>hidden</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>ver_fin_pre</id>
+      <actions phase="pre">
+        <action id="4">decision: f.qa_decision, go_resolve: f.go_resolve, go_rework: f.go_rework, status: f.status;
+                    if (decision.value == "pass") {
+                        change go_resolve value { 1 }; change go_rework value { 0 };
+                        change status value { "Resolved" };
+                    } else {
+                        change go_resolve value { 0 }; change go_rework value { 1 };
+                        change status value { "Rework Required" };
+                    }</action>
+      </actions>
+    </event>
+    <event type="finish">
+      <id>ver_fin_post</id>
+      <actions phase="post">
+        <action id="5">decision: f.qa_decision, title: f.title;
+                    if (decision.value == "pass") {
+                        sendEmail([userService.loggedOrSystem.email], "Bug Resolved: " + title.value, "The bug has been verified and resolved.");
+                    }</action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>status_view</id>
+    <x>400</x>
+    <y>16</y>
+    <label>Bug Status View</label>
+    <icon>visibility</icon>
+    <roleRef>
+      <id>reporter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Current Bug Status</title>
+      <dataRef>
+        <id>status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>title</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>severity</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>priority</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+      </dataRef>
+      <dataRef>
+        <id>fix_description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <!-- Data Logic for QA Rejection -->
+  <dataRef>
+    <id>qa_decision</id>
+    <event type="set">
+      <id>qa_dec_set</id>
+      <actions phase="post">
+        <action id="6">t_verify: t.verify_fix, decision: f.qa_decision, feedback: f.qa_feedback;
+                    if (decision.value == "fail") {
+                        make feedback, editable on t_verify when { true };
+                        make feedback, required on t_verify when { true };
+                    } else {
+                        make feedback, hidden on t_verify when { true };
+                    }</action>
+      </actions>
+    </event>
+  </dataRef>
+  <!-- Places -->
+  <place>
+    <id>p_start</id>
+    <x>16</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_triage</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Triage</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_dev</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Development</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_qa</id>
+    <x>592</x>
+    <y>208</y>
+    <label>QA</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_resolved</id>
+    <x>880</x>
+    <y>208</y>
+    <label>Resolved</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>112</x>
+    <y>16</y>
+    <label>Status Tracking</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <!-- Arcs -->
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>submit_bug</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_bug</sourceId>
+    <destinationId>p_triage</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>submit_bug</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>regular</type>
+    <sourceId>p_triage</sourceId>
+    <destinationId>triage_bug</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>triage_bug</sourceId>
+    <destinationId>p_dev</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>p_dev</sourceId>
+    <destinationId>fix_bug</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a7</id>
+    <type>regular</type>
+    <sourceId>fix_bug</sourceId>
+    <destinationId>p_qa</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a8</id>
+    <type>regular</type>
+    <sourceId>p_qa</sourceId>
+    <destinationId>verify_fix</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- XOR Split Arcs from QA -->
+  <arc>
+    <id>a9</id>
+    <type>regular</type>
+    <sourceId>verify_fix</sourceId>
+    <destinationId>p_resolved</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_resolve</reference>
+  </arc>
+  <arc>
+    <id>a10</id>
+    <type>regular</type>
+    <sourceId>verify_fix</sourceId>
+    <destinationId>p_dev</destinationId>
+    <multiplicity>0</multiplicity>
+    <reference>go_rework</reference>
+    <breakpoint>
+      <x>688</x>
+      <y>350</y>
+    </breakpoint>
+    <breakpoint>
+      <x>400</x>
+      <y>350</y>
+    </breakpoint>
+  </arc>
+  <!-- Read Arc for Status View -->
+  <arc>
+    <id>a11</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>status_view</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
