@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>persistent_status_example</id>
+  <version>1.0.0</version>
+  <initials>PSE</initials>
+  <title>Persistent Status View</title>
+  <icon>visibility</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>submitter</id>
+    <title>Submitter</title>
+  </role>
+  <data type="text">
+    <id>request_data</id>
+    <title>Request Details</title>
+  </data>
+  <data type="text">
+    <id>current_status</id>
+    <title>Current Status</title>
+    <init>Submitted</init>
+  </data>
+  <transition>
+    <id>submit</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Submit Request</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_submit</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>New Request</title>
+      <dataRef>
+        <id>request_data</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>view_status</id>
+    <x>400</x>
+    <y>16</y>
+    <label>View Status</label>
+    <icon>info</icon>
+    <priority>2</priority>
+    <roleRef>
+      <id>submitter</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_status</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Request Status</title>
+      <dataRef>
+        <id>current_status</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>request_data</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <transition>
+    <id>finish_process</id>
+    <x>592</x>
+    <y>208</y>
+    <label>Complete Process</label>
+    <icon>check</icon>
+    <roleRef>
+      <id>default</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <event type="finish">
+      <id>ev_finish</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            status: f.current_status;
+            change status value { "Completed" }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <place>
+    <id>p_start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_main_flow</id>
+    <x>400</x>
+    <y>208</y>
+    <label>In Progress</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_status</id>
+    <x>400</x>
+    <y>112</y>
+    <label>Status Active</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_end</id>
+    <x>784</x>
+    <y>208</y>
+    <label>End</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>p_start</sourceId>
+    <destinationId>submit</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit</sourceId>
+    <destinationId>p_main_flow</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>regular</type>
+    <sourceId>submit</sourceId>
+    <destinationId>p_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a4</id>
+    <type>read</type>
+    <sourceId>p_status</sourceId>
+    <destinationId>view_status</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a5</id>
+    <type>regular</type>
+    <sourceId>p_main_flow</sourceId>
+    <destinationId>finish_process</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a6</id>
+    <type>regular</type>
+    <sourceId>finish_process</sourceId>
+    <destinationId>p_end</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
