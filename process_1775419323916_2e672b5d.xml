@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <data type="text">
+        <id>status</id>
+        <title>Current Status</title>
+        <value>Submitted</value>
+    </data>
+    <data type="number">
+        <id>to_legal</id>
+        <title>To Legal</title>
+        <init>0</init>
+    </data>
+    <data type="number">
+        <id>to_pr</id>
+        <title>To PR</title>
+        <init>0</init>
+    </data>
+    <data type="taskRef">
+        <id>request_data_ref</id>
+        <title>Original Request</title>
+        <init>public_submit</init>
+    </data>
+
+    <transition>
+        <id>public_submit</id>
+        <x>112</x>
+        <y>208</y>
+        <label>Submit Request</label>
+        <icon>send</icon>
+        <assignPolicy>auto</assignPolicy>
+        <roleRef>
+            <id>anonymous</id>
+            <logic><perform>true</perform></logic>
+        </roleRef>
+        <dataGroup>
+            <id>dg_submit</id>
+            <cols>2</cols>
+            <layout>grid</layout>
+            <title>Request Form</title>
+            <dataRef>
+                <id>name</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>surname</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>1</x><y>0</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>email</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>1</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>phone</id>
+                <logic><behavior>editable</behavior></logic>
+                <layout><x>1</x><y>1</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>description</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>2</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>attachment</id>
+                <logic><behavior>editable</behavior></logic>
+                <layout><x>0</x><y>3</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+        </dataGroup>
+        <event type="finish">
+            <id>submit_finish</id>
+            <actions phase="pre">
+                <action id="2"><![CDATA[
+                    name: f.name, surname: f.surname;
+                    changeCaseProperty("title").about { "${name.value} ${surname.value}" }
+                ]]></action>
+            </actions>
+        </event>
+    </transition>
+
+    <transition>
+        <id>registration_desk</id>
+        <x>496</x>
+        <y>208</y>
+        <label>Registration Desk Triage</label>
+        <icon>assignment_ind</icon>
+        <assignPolicy>auto</assignPolicy>
+        <roleRef>
+            <id>registration</id>
+            <logic><perform>true</perform></logic>
+        </roleRef>
+        <dataGroup>
+            <id>dg_reg</id>
+            <cols>2</cols>
+            <layout>grid</layout>
+            <title>Triage</title>
+            <dataRef>
+                <id>request_data_ref</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>route_decision</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>1</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+        </dataGroup>
+        <event type="finish">
+            <id>reg_finish</id>
+            <actions phase="pre">
+                <action id="3"><![CDATA[
+                    to_legal: f.to_legal, to_pr: f.to_pr, route: f.route_decision, status: f.status;
+                    if (route.value == "legal") {
+                        change to_legal value { 1 }
+                        change to_pr value { 0 }
+                        change status value { "Under Legal Review" }
+                    } else {
+                        change to_legal value { 0 }
+                        change to_pr value { 1 }
+                        change status value { "Under PR Review" }
+                    }
+                ]]></action>
+            </actions>
+        </event>
+    </transition>
+
+    <transition>
+        <id>legal_review</id>
+        <x>880</x>
+        <y>112</y>
+        <label>Legal Review</label>
+        <icon>gavel</icon>
+        <assignPolicy>auto</assignPolicy>
+        <roleRef>
+            <id>legal</id>
+            <logic><perform>true</perform></logic>
+        </roleRef>
+        <dataGroup>
+            <id>dg_legal</id>
+            <cols>2</cols>
+            <layout>grid</layout>
+            <title>Legal Assessment</title>
+            <dataRef>
+                <id>request_data_ref</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>legal_statement</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>1</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+        </dataGroup>
+        <event type="finish">
+            <id>legal_finish</id>
+            <actions phase="pre">
+                <action id="4"><![CDATA[
+                    status: f.status;
+                    change status value { "Legal Review Completed" }
+                ]]></action>
+            </actions>
+        </event>
+    </transition>
+
+    <transition>
+        <id>pr_review</id>
+        <x>880</x>
+        <y>304</y>
+        <label>PR Review and Answer</label>
+        <icon>chat</icon>
+        <assignPolicy>auto</assignPolicy>
+        <roleRef>
+            <id>pr</id>
+            <logic><perform>true</perform></logic>
+        </roleRef>
+        <dataGroup>
+            <id>dg_pr</id>
+            <cols>2</cols>
+            <layout>grid</layout>
+            <title>Final Response</title>
+            <dataRef>
+                <id>request_data_ref</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>legal_statement</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>1</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>pr_answer</id>
+                <logic><behavior>editable</behavior><behavior>required</behavior></logic>
+                <layout><x>0</x><y>2</y><rows>1</rows><cols>2</cols></layout>
+            </dataRef>
+        </dataGroup>
+        <event type="finish">
+            <id>pr_finish</id>
+            <actions phase="pre">
+                <action id="5"><![CDATA[
+                    status: f.status;
+                    change status value { "Request Resolved" }
+                    changeCaseProperty("color").about { "green" }
+                ]]></action>
+            </actions>
+        </event>
+    </transition>
+
+    <transition>
+        <id>status_view</id>
+        <x>496</x>
+        <y>16</y>
+        <label>Track My Request</label>
+        <icon>visibility</icon>
+        <roleRef>
+            <id>anonymous</id>
+            <logic><perform>true</perform></logic>
+        </roleRef>
+        <dataGroup>
+            <id>dg_status</id>
+            <cols>1</cols>
+            <layout>grid</layout>
+            <title>Current Status</title>
+            <dataRef>
+                <id>status</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>0</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+            <dataRef>
+                <id>pr_answer</id>
+                <logic><behavior>visible</behavior></logic>
+                <layout><x>0</x><y>1</y><rows>1</rows><cols>1</cols></layout>
+            </dataRef>
+        </dataGroup>
+    </transition>
+
+    <place><id>p_start</id><x>16</x><y>208</y><label>Start</label><tokens>1</tokens><static>false</static></place>
+    <place><id>p_triage</id><x>304</x><y>208</y><label>Pending Triage</label><tokens>0</tokens><static>false</static></place>
+    <place><id>p_legal</id><x>688</x><y>112</y><label>Legal Queue</label><tokens>0</tokens><static>false</static></place>
+    <place><id>p_pr</id><x>688</x><y>304</y><label>PR Queue</label><tokens>0</tokens><static>false</static></place>
+    <place><id>p_merge</id><x>1072</x><y>208</y><label>Resolved</label><tokens>0</tokens><static>false</static></place>
+    <place><id>p_status</id><x>304</x><y>16</y><label>Status Place</label><tokens>0</tokens><static>false</static></place>
+
+    <arc><id>a1</id><type>regular</type><sourceId>p_start</sourceId><destinationId>public_submit</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a2</id><type>regular</type><sourceId>public_submit</sourceId><destinationId>p_triage</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a3</id><type>regular</type><sourceId>public_submit</sourceId><destinationId>p_status</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a4</id><type>regular</type><sourceId>p_triage</sourceId><destinationId>registration_desk</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a5</id><type>regular</type><sourceId>registration_desk</sourceId><destinationId>p_legal</destinationId><multiplicity>0</multiplicity><reference>to_legal</reference></arc>
+    <arc><id>a6</id><type>regular</type><sourceId>registration_desk</sourceId><destinationId>p_pr</destinationId><multiplicity>0</multiplicity><reference>to_pr</reference></arc>
+    <arc><id>a7</id><type>regular</type><sourceId>p_legal</sourceId><destinationId>legal_review</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a8</id><type>regular</type><sourceId>legal_review</sourceId><destinationId>p_pr</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a9</id><type>regular</type><sourceId>p_pr</sourceId><destinationId>pr_review</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a10</id><type>regular</type><sourceId>pr_review</sourceId><destinationId>p_merge</destinationId><multiplicity>1</multiplicity></arc>
+    <arc><id>a11</id><type>read</type><sourceId>p_status</sourceId><destinationId>status_view</destinationId><multiplicity>1</multiplicity></arc>
+</document>
