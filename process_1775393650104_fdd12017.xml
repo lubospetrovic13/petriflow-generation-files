@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>item_process</id>
+  <version>1.0.0</version>
+  <initials>ITM</initials>
+  <title>Item Entry</title>
+  <icon>insert_drive_file</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="text">
+    <id>item_name</id>
+    <title>Item Name</title>
+  </data>
+  <data type="text">
+    <id>description</id>
+    <title>Description</title>
+    <component>
+      <name>textarea</name>
+    </component>
+  </data>
+  <data type="number">
+    <id>value</id>
+    <title>Numeric Value</title>
+  </data>
+  <transition>
+    <id>item_form</id>
+    <x>304</x>
+    <y>208</y>
+    <label>Item Details</label>
+    <roleRef>
+      <id>system</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>dg_item</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Item Information</title>
+      <dataRef>
+        <id>item_name</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>description</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>value</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>p_active</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Active</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>read</type>
+    <sourceId>p_active</sourceId>
+    <destinationId>item_form</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
