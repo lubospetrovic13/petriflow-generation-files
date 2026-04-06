@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    </dataGroup>
+  </transition>
+
+  <!-- PLACES -->
+  <place><id>start</id><x>16</x><y>208</y><label>Start</label><tokens>1</tokens><static>false</static></place>
+  <place><id>p_pending</id><x>208</x><y>208</y><label>Pending Review</label><tokens>0</tokens><static>false</static></place>
+  <place><id>p_reviewed</id><x>400</x><y>208</y><label>Reviewed</label><tokens>0</tokens><static>false</static></place>
+  <place><id>p_rejected</id><x>592</x><y>304</y><label>Rejected</label><tokens>0</tokens><static>false</static></place>
+  <place><id>p_open</id><x>592</x><y>208</y><label>Open</label><tokens>0</tokens><static>false</static></place>
+
+  <!-- Permanent panel place for read arc -->
+  <place><id>p_panel</id><x>784</x><y>208</y><label>Panel</label><tokens>0</tokens><static>false</static></place>
+
+  <!-- ARCS -->
+  <arc><id>a1</id><type>regular</type><sourceId>start</sourceId><destinationId>submit_order</destinationId><multiplicity>1</multiplicity></arc>
+  <arc><id>a2</id><type>regular</type><sourceId>submit_order</sourceId><destinationId>p_pending</destinationId><multiplicity>1</multiplicity></arc>
+  <arc><id>a3</id><type>regular</type><sourceId>p_pending</sourceId><destinationId>manager_review</destinationId><multiplicity>1</multiplicity></arc>
+  <!-- Variable arcs for approve/reject -->
+  <arc><id>a4</id><type>regular</type><sourceId>manager_review</sourceId><destinationId>p_open</destinationId><multiplicity>0</multiplicity><reference>go_approve</reference></arc>
+  <arc><id>a5</id><type>regular</type><sourceId>manager_review</sourceId><destinationId>p_rejected</destinationId><multiplicity>0</multiplicity><reference>go_reject</reference></arc>
+  <!-- Correction loop -->
+  <arc><id>a6</id><type>regular</type><sourceId>p_rejected</sourceId><destinationId>order_correction</destinationId><multiplicity>1</multiplicity></arc>
+  <arc><id>a7</id><type>regular</type><sourceId>order_correction</sourceId><destinationId>p_pending</destinationId><multiplicity>1</multiplicity></arc>
+  <!-- Open state to panel -->
+  <arc><id>a8</id><type>regular</type><sourceId>p_open</sourceId><destinationId>p_panel</destinationId><multiplicity>1</multiplicity></arc>
+  <!-- Permanent panel (read arc) -->
+  <arc><id>a9</id><type>read</type><sourceId>p_panel</sourceId><destinationId>order_panel</destinationId><multiplicity>1</multiplicity></arc>
+</document>
