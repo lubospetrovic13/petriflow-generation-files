@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>list_process</id>
+  <version>1.0.0</version>
+  <initials>LST</initials>
+  <title>Item List</title>
+  <icon>list</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>false</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <role>
+    <id>manager</id>
+    <title>Manager</title>
+  </role>
+  <role>
+    <id>system</id>
+    <title>System</title>
+  </role>
+  <data type="taskRef">
+    <id>item_tasks</id>
+    <title>Items</title>
+    <!-- No <init> for dynamic list -->
+  </data>
+  <data type="button">
+    <id>add_item</id>
+    <title/>
+    <placeholder>Add Item</placeholder>
+    <init>1</init>
+  </data>
+  <transition>
+    <id>list_panel</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Item List</label>
+    <icon>list</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>manager</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>main</id>
+      <cols>2</cols>
+      <layout>grid</layout>
+      <title>Items</title>
+      <dataRef>
+        <id>add_item</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>item_tasks</id>
+        <logic>
+          <behavior>editable</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>2</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>p_list</id>
+    <x>112</x>
+    <y>208</y>
+    <label>List</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>arc_read</id>
+    <type>read</type>
+    <sourceId>p_list</sourceId>
+    <destinationId>list_panel</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <!-- Add button logic: create Item case and embed its task -->
+  <data type="button">
+    <id>add_item</id>
+    <title/>
+    <placeholder>Add Item</placeholder>
+    <init>1</init>
+    <event type="set">
+      <id>add_item_set</id>
+      <actions phase="pre">
+        <action id="1">
+<![CDATA[
+            item_tasks: f.item_tasks;
+            def c   = createCase(workspace + "item_process")
+            def tid = c.tasks.find { it.transition == "item_form" }?.task
+            change item_tasks value { (item_tasks.value ?: []) + tid }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </data>
+</document>
