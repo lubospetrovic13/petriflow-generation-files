@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+  <id>bug_report</id>
+  <version>1.0.0</version>
+  <initials>BR</initials>
+  <title>Bug Reporting</title>
+  <icon>bug_report</icon>
+  <defaultRole>true</defaultRole>
+  <anonymousRole>true</anonymousRole>
+  <transitionRole>false</transitionRole>
+  <caseEvents>
+    <event type="create">
+      <id>on_create</id>
+      <actions phase="post">
+        <action id="1">
+<![CDATA[
+            async.run {
+            sendEmail(
+            ["lubospetrovic13@gmail.com"],
+            "Nový bug nahlásený",
+            "Bol nahlásený nový bug. Prihlás sa do aplikácie a pozri si detaily."
+            )
+            }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </caseEvents>
+  <role>
+    <id>admin</id>
+    <title>Admin</title>
+  </role>
+  <data type="text">
+    <id>bug_title</id>
+    <title>Názov bugu</title>
+    <value/>
+    <component>
+      <name/>
+    </component>
+  </data>
+  <data type="text">
+    <id>bug_description</id>
+    <title>Popis bugu</title>
+    <component>
+      <name>textarea</name>
+    </component>
+    <value/>
+  </data>
+  <data type="dateTime">
+    <id>reported_at</id>
+    <title>Nahlásené</title>
+    <value/>
+  </data>
+  <transition>
+    <id>submit_bug</id>
+    <x>208</x>
+    <y>208</y>
+    <label>Nahlásiť bug</label>
+    <icon>send</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>1</priority>
+    <roleRef>
+      <id>anonymous</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>bug_form</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Nahlásiť bug</title>
+      <dataRef>
+        <id>bug_title</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>bug_description</id>
+        <logic>
+          <behavior>editable</behavior>
+          <behavior>required</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+    <event type="finish">
+      <id>submit_bug_finish</id>
+      <actions phase="pre">
+        <action id="2">
+<![CDATA[
+            reported_at: f.reported_at;
+            change reported_at value { java.time.LocalDateTime.now() }
+            ]]>
+        </action>
+      </actions>
+    </event>
+  </transition>
+  <transition>
+    <id>bug_list</id>
+    <x>688</x>
+    <y>208</y>
+    <label>Zoznam bugov</label>
+    <icon>list</icon>
+    <assignPolicy>auto</assignPolicy>
+    <priority>2</priority>
+    <roleRef>
+      <id>admin</id>
+      <logic>
+        <perform>true</perform>
+      </logic>
+    </roleRef>
+    <dataGroup>
+      <id>bug_list_group</id>
+      <cols>1</cols>
+      <layout>grid</layout>
+      <title>Detail bugu</title>
+      <dataRef>
+        <id>bug_title</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>0</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>bug_description</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>1</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+      <dataRef>
+        <id>reported_at</id>
+        <logic>
+          <behavior>visible</behavior>
+        </logic>
+        <layout>
+          <x>0</x>
+          <y>2</y>
+          <rows>1</rows>
+          <cols>1</cols>
+          <template>material</template>
+          <appearance>outline</appearance>
+        </layout>
+      </dataRef>
+    </dataGroup>
+  </transition>
+  <place>
+    <id>start</id>
+    <x>112</x>
+    <y>208</y>
+    <label>Start</label>
+    <tokens>1</tokens>
+    <static>false</static>
+  </place>
+  <place>
+    <id>p_bug</id>
+    <x>400</x>
+    <y>208</y>
+    <label>Bug prijatý</label>
+    <tokens>0</tokens>
+    <static>false</static>
+  </place>
+  <arc>
+    <id>a1</id>
+    <type>regular</type>
+    <sourceId>start</sourceId>
+    <destinationId>submit_bug</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a2</id>
+    <type>regular</type>
+    <sourceId>submit_bug</sourceId>
+    <destinationId>p_bug</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+  <arc>
+    <id>a3</id>
+    <type>read</type>
+    <sourceId>p_bug</sourceId>
+    <destinationId>bug_list</destinationId>
+    <multiplicity>1</multiplicity>
+  </arc>
+</document>
